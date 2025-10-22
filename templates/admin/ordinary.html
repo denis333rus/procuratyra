@@ -1,0 +1,438 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Админ — обычные новости</title>
+  <style>
+    html { scroll-behavior: smooth; }
+    :root {
+      --blue-700: #0d47a1;
+      --blue-600: #1565c0;
+      --text-on-blue: #ffffff;
+      --focus: #ffeb3b;
+    }
+
+    * { box-sizing: border-box; }
+    html, body { margin: 0; padding: 0; }
+    body { font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; color: #111; }
+
+    /* Top blue bar */
+    .top-bar {
+      background: var(--blue-700);
+      color: var(--text-on-blue);
+    }
+    .top-bar__content {
+      max-width: 1200px;
+      margin: 0 auto;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 10px 16px;
+      min-height: 48px;
+    }
+    .top-bar__title {
+      margin: 0;
+      font-size: 16px;
+      font-weight: 600;
+      line-height: 1.2;
+      letter-spacing: .2px;
+    }
+    .top-bar__btn {
+      display: inline-block;
+      text-decoration: none;
+      color: var(--text-on-blue);
+      border: 1px solid rgba(255,255,255,.6);
+      padding: 6px 10px;
+      border-radius: 6px;
+      transition: background-color .15s ease, border-color .15s ease;
+    }
+    .top-bar__btn:hover { background: var(--blue-600); }
+    .top-bar__btn:focus-visible {
+      outline: 3px solid var(--focus);
+      outline-offset: 2px;
+    }
+    .lang-switcher {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .lang-switcher__btn {
+      appearance: none;
+      border: 1px solid rgba(255,255,255,.6);
+      color: var(--text-on-blue);
+      background: transparent;
+      padding: 6px 10px;
+      border-radius: 6px;
+      font-size: 14px;
+      cursor: pointer;
+      transition: background-color .15s ease, border-color .15s ease;
+    }
+    .lang-switcher__btn:hover { background: var(--blue-600); }
+    .lang-switcher__btn:focus-visible {
+      outline: 3px solid var(--focus);
+      outline-offset: 2px;
+    }
+
+    /* Brand block under top bar */
+    .brand {
+      max-width: 1200px;
+      margin: 12px auto 0 auto;
+      padding: 0 16px;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+    .brand__logo {
+      flex: 0 0 auto;
+      width: 56px;
+      height: 56px;
+    }
+    .brand__logo img { width: 100%; height: 100%; object-fit: contain; display: block; }
+    .brand__title { margin: 0; font-size: 20px; font-weight: 700; line-height: 1.25; }
+    .brand__spacer { flex: 1 1 auto; }
+    .brand__actions { display: inline-flex; gap: 10px; }
+    .btn { display: inline-block; text-decoration: none; border-radius: 8px; padding: 8px 12px; font-size: 14px; font-weight: 600; }
+    .btn--outline { color: #0d47a1; border: 1px solid #0d47a1; background: #ffffff; }
+    .btn--primary { color: #ffffff; background: #0d47a1; border: 1px solid #0d47a1; }
+    .btn:hover { filter: brightness(0.95); }
+    
+    /* Account info styles */
+    .account-info {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      gap: 4px;
+    }
+    .account-info__name {
+      font-size: 16px;
+      font-weight: 700;
+      color: #0d47a1;
+    }
+    .account-info__role {
+      font-size: 12px;
+      color: #666;
+      margin-bottom: 4px;
+    }
+
+    /* Admin specific styles */
+    .wrap { 
+      max-width: 1200px; 
+      margin: 0 auto; 
+      display: grid; 
+      gap: 32px; 
+      padding: 32px 20px; 
+      background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+      min-height: calc(100vh - 200px);
+    }
+    
+    /* Page header */
+    .page-header {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      padding: 24px;
+      border-radius: 16px;
+      box-shadow: 0 8px 32px rgba(102, 126, 234, 0.3);
+      margin-bottom: 8px;
+    }
+    
+    .page-header h1 {
+      margin: 0;
+      font-size: 28px;
+      font-weight: 700;
+      text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    
+    .page-header .btn {
+      background: rgba(255,255,255,0.2);
+      border: 1px solid rgba(255,255,255,0.3);
+      color: white;
+      backdrop-filter: blur(10px);
+      transition: all 0.3s ease;
+    }
+    
+    .page-header .btn:hover {
+      background: rgba(255,255,255,0.3);
+      transform: translateY(-2px);
+    }
+    
+    /* Navigation */
+    .admin-nav {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+    
+    .admin-nav .btn {
+      padding: 16px 20px;
+      border-radius: 12px;
+      font-weight: 600;
+      font-size: 14px;
+      text-align: center;
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+      border: none;
+      position: relative;
+      overflow: hidden;
+    }
+    
+    .admin-nav .btn::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+      transition: left 0.5s;
+    }
+    
+    .admin-nav .btn:hover::before {
+      left: 100%;
+    }
+    
+    .admin-nav .btn:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+    }
+    
+    .admin-nav .btn.active {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+    }
+    
+    /* Sections */
+    .admin-section {
+      background: white;
+      border-radius: 16px;
+      padding: 24px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+      border: 1px solid rgba(0,0,0,0.05);
+      transition: all 0.3s ease;
+    }
+    
+    .admin-section:hover {
+      box-shadow: 0 8px 32px rgba(0,0,0,0.12);
+      transform: translateY(-2px);
+    }
+    
+    .admin-section h2 {
+      margin: 0 0 20px 0;
+      font-size: 20px;
+      font-weight: 700;
+      color: #2d3748;
+      border-bottom: 3px solid #667eea;
+      padding-bottom: 8px;
+    }
+    
+    /* Forms */
+    .admin-form {
+      display: grid;
+      gap: 16px;
+      grid-template-columns: 1fr 1fr;
+      align-items: end;
+      margin-bottom: 24px;
+      padding: 20px;
+      background: linear-gradient(135deg, #f7fafc 0%, #edf2f7 100%);
+      border-radius: 12px;
+      border: 1px solid #e2e8f0;
+    }
+    
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    
+    .form-group label {
+      font-weight: 600;
+      color: #4a5568;
+      font-size: 14px;
+    }
+    
+    .admin-form input {
+      padding: 12px 16px;
+      border: 2px solid #e2e8f0;
+      border-radius: 8px;
+      font-size: 14px;
+      transition: all 0.3s ease;
+      background: white;
+    }
+    
+    .admin-form input:focus {
+      outline: none;
+      border-color: #667eea;
+      box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+    }
+    
+    .admin-form button {
+      padding: 12px 24px;
+      border-radius: 8px;
+      border: none;
+      cursor: pointer;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      font-weight: 600;
+      font-size: 14px;
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+    }
+    
+    .admin-form button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+    }
+    
+    /* Tables */
+    .admin-table {
+      width: 100%;
+      border-collapse: separate;
+      border-spacing: 0;
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+      background: white;
+    }
+    
+    .admin-table thead {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+    }
+    
+    .admin-table th {
+      padding: 16px;
+      text-align: left;
+      font-weight: 600;
+      font-size: 14px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    
+    .admin-table td {
+      padding: 16px;
+      border-bottom: 1px solid #f1f5f9;
+      font-size: 14px;
+      color: #4a5568;
+    }
+    
+    .admin-table tbody tr {
+      transition: all 0.2s ease;
+    }
+    
+    .admin-table tbody tr:hover {
+      background: #f8fafc;
+      transform: scale(1.01);
+    }
+    
+    .admin-table tbody tr:last-child td {
+      border-bottom: none;
+    }
+    
+    /* Responsive */
+    @media (max-width: 768px) {
+      .admin-nav {
+        grid-template-columns: 1fr;
+      }
+      
+      .admin-form {
+        grid-template-columns: 1fr;
+      }
+      
+      .wrap {
+        padding: 20px 16px;
+        gap: 24px;
+      }
+      
+      .page-header {
+        padding: 20px;
+      }
+      
+      .page-header h1 {
+        font-size: 24px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header class="top-bar">
+    <div class="top-bar__content">
+      <h1 class="top-bar__title"><a class="top-bar__btn" href="{{ url_for('index') }}" role="button" aria-label="Перейти на главную страницу">Органы и организации прокуратуры</a></h1>
+      <div class="lang-switcher">
+        <button id="lang-toggle"
+                class="lang-switcher__btn"
+                type="button"
+                aria-label="Сменить язык">
+          RU
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <div class="brand">
+    <div class="brand__logo">
+      <img src="../logo/logo.png" alt="Герб прокуратуры">
+    </div>
+    <h2 class="brand__title">Генеральная прокуратура<br>Российской Федерации</h2>
+    <div class="brand__spacer"></div>
+    <div class="brand__actions">
+      <div class="account-info">
+        <div class="account-info__name">Администратор</div>
+        <div class="account-info__role">Системный администратор</div>
+        <a class="btn btn--outline" href="/admin/logout">Выйти</a>
+      </div>
+    </div>
+  </div>
+  <div class="wrap">
+    <div class="page-header">
+      <div style="display: flex; justify-content: space-between; align-items: center;">
+        <h1>📋 Обычные новости (лента)</h1>
+      <a class="btn" href="/admin/logout">Выйти</a>
+      </div>
+    </div>
+    
+    <nav class="admin-nav">
+      <a href="/admin/important" class="btn">📰 Важные</a>
+      <a href="/admin/ordinary" class="btn active">📋 Обычные</a>
+      <a href="/admin/employees" class="btn">👥 Сотрудники</a>
+      <a href="/admin/jobs" class="btn">💼 Заявки</a>
+      <a href="/admin/docs" class="btn">📄 Документы</a>
+      <a href="/admin/leader" class="btn">👑 Лидер</a>
+    </nav>
+    
+    <div class="admin-section">
+      <h2>✨ Добавить новость в ленту</h2>
+      <form method="post" action="/admin/feed/add" class="admin-form">
+        <div class="form-group">
+          <label for="date">Дата</label>
+          <input id="date" type="date" name="date" required>
+        </div>
+        <div class="form-group">
+          <label for="time">Время</label>
+          <input id="time" type="time" name="time" required>
+        </div>
+        <div class="form-group" style="grid-column: span 2;">
+          <label for="title">Заголовок</label>
+          <input id="title" type="text" name="title" placeholder="Введите заголовок новости" required>
+        </div>
+        <div class="form-group" style="grid-column: span 2;">
+          <label for="url">Ссылка</label>
+          <input id="url" type="text" name="url" placeholder="# (по умолчанию)">
+      </div>
+        <button type="submit" style="grid-column: span 2;">✨ Добавить в ленту</button>
+    </form>
+      
+      <h2>📋 Список новостей в ленте</h2>
+      <table class="admin-table">
+      <thead><tr><th>Дата</th><th>Время</th><th>Заголовок</th></tr></thead>
+      <tbody>
+        {% for f in feed %}
+        <tr><td>{{ f.date }}</td><td>{{ f.time }}</td><td>{{ f.title }}</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    </div>
+  </div>
+</body>
+</html>

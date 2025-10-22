@@ -1,0 +1,465 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Органы и организации прокуратуры</title>
+  <style>
+    html { scroll-behavior: smooth; }
+    :root {
+      --blue-700: #0d47a1;
+      --blue-600: #1565c0;
+      --text-on-blue: #ffffff;
+      --focus: #ffeb3b;
+    }
+
+    * { box-sizing: border-box; }
+    html, body { margin: 0; padding: 0; }
+    body { font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; color: #111; }
+
+    /* Top blue bar */
+    .top-bar {
+      background: var(--blue-700);
+      color: var(--text-on-blue);
+    }
+    .top-bar__content {
+      max-width: 1200px;
+      margin: 0 auto;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 10px 16px;
+      min-height: 48px;
+    }
+    .top-bar__title {
+      margin: 0;
+      font-size: 16px;
+      font-weight: 600;
+      line-height: 1.2;
+      letter-spacing: .2px;
+    }
+    .top-bar__btn {
+      display: inline-block;
+      text-decoration: none;
+      color: var(--text-on-blue);
+      border: 1px solid rgba(255,255,255,.6);
+      padding: 6px 10px;
+      border-radius: 6px;
+      transition: background-color .15s ease, border-color .15s ease;
+    }
+    .top-bar__btn:hover { background: var(--blue-600); }
+    .top-bar__btn:focus-visible {
+      outline: 3px solid var(--focus);
+      outline-offset: 2px;
+    }
+    .lang-switcher {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .lang-switcher__btn {
+      appearance: none;
+      border: 1px solid rgba(255,255,255,.6);
+      color: var(--text-on-blue);
+      background: transparent;
+      padding: 6px 10px;
+      border-radius: 6px;
+      font-size: 14px;
+      cursor: pointer;
+      transition: background-color .15s ease, border-color .15s ease;
+    }
+    .lang-switcher__btn:hover { background: var(--blue-600); }
+    .lang-switcher__btn:focus-visible {
+      outline: 3px solid var(--focus);
+      outline-offset: 2px;
+    }
+
+    /* Main layout placeholder */
+    main { padding: 24px 16px; max-width: 1200px; margin: 0 auto; }
+
+    /* Brand block under top bar */
+    .brand {
+      max-width: 1200px;
+      margin: 12px auto 0 auto;
+      padding: 0 16px;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+    .brand__logo {
+      flex: 0 0 auto;
+      width: 56px;
+      height: 56px;
+    }
+    .brand__logo img { width: 100%; height: 100%; object-fit: contain; display: block; }
+    .brand__title { margin: 0; font-size: 20px; font-weight: 700; line-height: 1.25; }
+    .brand__spacer { flex: 1 1 auto; }
+    .brand__actions { display: inline-flex; gap: 10px; }
+    .btn { display: inline-block; text-decoration: none; border-radius: 8px; padding: 8px 12px; font-size: 14px; font-weight: 600; }
+    .btn--outline { color: #0d47a1; border: 1px solid #0d47a1; background: #ffffff; }
+    .btn--primary { color: #ffffff; background: #0d47a1; border: 1px solid #0d47a1; }
+    .btn:hover { filter: brightness(0.95); }
+
+    /* Primary navigation */
+    .nav {
+      max-width: 1200px;
+      margin: 10px auto 0 auto;
+      padding: 0 16px;
+    }
+    .nav__list {
+      list-style: none;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+    .nav__btn {
+      display: inline-block;
+      text-decoration: none;
+      color: #0d47a1;
+      border: 1px solid #0d47a1;
+      background: #ffffff;
+      padding: 8px 12px;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 600;
+      transition: background-color .15s ease, color .15s ease, border-color .15s ease;
+    }
+    .nav__btn:hover { background: #e3f2fd; }
+    .nav__btn:focus-visible { outline: 3px solid var(--focus); outline-offset: 2px; }
+    @media (max-width: 480px) { .nav__btn { font-size: 13px; padding: 8px 10px; } }
+
+    @media (max-width: 480px) {
+      .top-bar__title { font-size: 14px; font-weight: 600; }
+      .lang-switcher__btn { padding: 6px 8px; font-size: 13px; }
+    }
+
+    /* Feature grid section (blue) */
+    .features {
+      position: relative;
+      margin-top: 16px;
+      background: linear-gradient(180deg, #567eea 0%, #6ba0ff 100%);
+      color: #eaf2ff;
+      padding: 28px 16px 72px 16px; /* extra bottom for wave + button */
+    }
+    .features__inner { max-width: 1200px; margin: 0 auto; }
+    .features__grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 26px 40px;
+    }
+    .feature {
+      display: grid;
+      grid-template-columns: 56px 1fr;
+      gap: 14px;
+      align-items: start;
+    }
+    .feature__icon {
+      width: 56px; height: 56px; border-radius: 12px;
+      border: 2px solid rgba(255,255,255,.6);
+      display: grid; place-items: center;
+      color: #ffffff; font-size: 22px; font-weight: 700;
+    }
+    .feature__title { margin: 0 0 6px 0; font-size: 16px; font-weight: 700; color: #ffffff; }
+    .feature__desc { margin: 0; font-size: 13px; color: #e3ecff; }
+
+    @media (max-width: 900px) { .features__grid { grid-template-columns: repeat(2, 1fr); } }
+    @media (max-width: 520px) {
+      .features__grid { grid-template-columns: 1fr; }
+      .feature { grid-template-columns: 44px 1fr; }
+      .feature__icon { width: 44px; height: 44px; font-size: 18px; }
+    }
+
+    /* Curved wave exit */
+    .features__wave {
+      position: absolute; left: 0; right: 0; bottom: 0; height: 54px; pointer-events: none;
+      overflow: hidden; z-index: 1;
+    }
+    .features__wave svg { display: block; width: 100%; height: 100%; }
+
+    /* Center scroll button */
+    .scroll-down {
+      position: absolute; left: 50%; bottom: 12px; transform: translate(-50%, 50%);
+      width: 44px; height: 44px; border-radius: 50%;
+      background: #5b87ff; color: #ffffff; border: 2px solid #ffffff;
+      display: grid; place-items: center; cursor: pointer;
+      box-shadow: 0 6px 16px rgba(0,0,0,.25); z-index: 2;
+    }
+    .scroll-down:focus-visible { outline: 3px solid var(--focus); outline-offset: 2px; }
+
+    /* News section */
+    .news { padding: 40px 16px 24px 16px; max-width: 1200px; margin: 0 auto; }
+    .news__title { margin: 0 0 18px 0; font-size: 32px; line-height: 1.2; color: #2b3a5a; }
+    .news__slider { position: relative; background: #f7f9ff; border-radius: 10px; overflow: hidden; }
+    .news__slide { display: grid; grid-template-columns: 2fr 1fr; gap: 16px; align-items: stretch; padding: 0; min-height: 360px; }
+    .news__image { position: relative; }
+    .news__image img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .news__card { background: #2f6be5; color: #fff; padding: 20px; display: flex; flex-direction: column; justify-content: center; }
+    .news__date { font-size: 12px; opacity: .9; margin-bottom: 10px; }
+    .news__headline { font-size: 18px; font-weight: 700; line-height: 1.35; margin: 0; }
+    .news__controls { position: absolute; right: 16px; bottom: 12px; display: flex; gap: 10px; align-items: center; }
+    .news__arrow { width: 36px; height: 36px; border-radius: 50%; border: 1px solid #2f6be5; color: #2f6be5; background: #fff; display: grid; place-items: center; text-decoration: none; }
+    .news__dots { display: flex; gap: 8px; }
+    .news__dot { width: 8px; height: 8px; border-radius: 50%; background: #b7c8ff; display: inline-block; }
+    .news__dot[aria-current="true"] { background: #2f6be5; }
+    @media (max-width: 900px) { .news__slide { grid-template-columns: 1fr; min-height: 320px; } }
+
+    /* Feed block */
+    .feed { max-width: 1200px; margin: 0 auto; padding: 8px 16px 40px 16px; }
+    .feed__tabs { display: flex; gap: 24px; align-items: center; margin-bottom: 8px; }
+    .feed__tab { color: #2b3a5a; text-decoration: none; font-weight: 600; padding-bottom: 6px; border-bottom: 3px solid transparent; }
+    .feed__tab[aria-current="true"] { border-color: #5b87ff; }
+    .feed__group { margin: 18px 0; }
+    .feed__date { font-weight: 700; color: #2b3a5a; margin: 0 0 12px 0; }
+    .feed__item { display: grid; grid-template-columns: 60px 1fr; gap: 10px; align-items: baseline; padding: 6px 0; border-bottom: 1px solid #eef2ff; }
+    .feed__time { color: #8aa0d6; font-size: 12px; }
+    .feed__link { color: #2b3a5a; text-decoration: none; }
+    .feed__link:hover { color: #0d47a1; text-decoration: underline; }
+    .feed__controls { display: flex; align-items: center; justify-content: space-between; margin-top: 16px; }
+    .feed__all { background: #e8f0ff; color: #2b57ff; border: 1px solid #9db8ff; padding: 8px 14px; border-radius: 20px; text-decoration: none; }
+    .feed__arrows { display: flex; gap: 10px; }
+    .feed__arrow { width: 36px; height: 36px; border-radius: 50%; border: 1px solid #9db8ff; color: #2b57ff; background: #fff; display: grid; place-items: center; text-decoration: none; }
+  </style>
+</head>
+<body>
+  <header class="top-bar">
+    <div class="top-bar__content">
+      <h1 class="top-bar__title"><a class="top-bar__btn" href="base.html" role="button" aria-label="Перейти на страницу 'Органы и организации прокуратуры'">Органы и организации прокуратуры</a></h1>
+      <div class="lang-switcher">
+        <button id="lang-toggle"
+                class="lang-switcher__btn"
+                type="button"
+                aria-label="Сменить язык">
+          RU
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <div class="brand">
+    <div class="brand__logo">
+      <img src="../logo/logo.png" alt="Герб прокуратуры">
+    </div>
+    <h2 class="brand__title">Генеральная прокуратура<br>Российской Федерации</h2>
+    <div class="brand__spacer"></div>
+    <div class="brand__actions">
+      <a class="btn btn--outline" href="{{ url_for('login') }}">Вход</a>
+      <a class="btn btn--primary" href="{{ url_for('jobs') }}">Приём на работу</a>
+    </div>
+  </div>
+
+  <nav class="nav" aria-label="Основная навигация">
+    <ul class="nav__list">
+      <li><a class="nav__btn" href="#">О ведомстве</a></li>
+      <li><a class="nav__btn" href="#">Деятельность</a></li>
+      <li><a class="nav__btn" href="#">Обращение в прокуратуру</a></li>
+      <li><a class="nav__btn" href="#">Документы</a></li>
+      <li><a class="nav__btn" href="#">Контакты</a></li>
+    </ul>
+  </nav>
+
+  <section class="features" aria-label="Сервисы и разделы">
+    <div class="features__inner">
+      <div class="features__grid">
+        <a class="feature" href="#">
+          <div class="feature__icon">🔎</div>
+          <div>
+            <h3 class="feature__title">ЕРКНМ/ЕРП</h3>
+            <p class="feature__desc">Поиск КНМ/Сводный план</p>
+          </div>
+        </a>
+        <a class="feature" href="#">
+          <div class="feature__icon">🛡️</div>
+          <div>
+            <h3 class="feature__title">Противодействие коррупции</h3>
+            <p class="feature__desc">Информация для граждан</p>
+          </div>
+        </a>
+        <a class="feature" href="#">
+          <div class="feature__icon">👤</div>
+          <div>
+            <h3 class="feature__title">Руководство</h3>
+            <p class="feature__desc">Сведения о трудовой деятельности руководителей</p>
+          </div>
+        </a>
+        <a class="feature" href="#">
+          <div class="feature__icon">📚</div>
+          <div>
+            <h3 class="feature__title">Правовое просвещение</h3>
+            <p class="feature__desc">Буклеты, ролики, наглядные материалы</p>
+          </div>
+        </a>
+        <a class="feature" href="#">
+          <div class="feature__icon">📞</div>
+          <div>
+            <h3 class="feature__title">Прямая линия для предпринимателей</h3>
+            <p class="feature__desc">Канал связи c Генеральным прокурором</p>
+          </div>
+        </a>
+        <a class="feature" href="#">
+          <div class="feature__icon">⭐</div>
+          <div>
+            <h3 class="feature__title">Защита прав ветеранов</h3>
+            <p class="feature__desc">Новости и нормативные акты</p>
+          </div>
+        </a>
+        <a class="feature" href="#">
+          <div class="feature__icon">👨‍👩‍👧‍👦</div>
+          <div>
+            <h3 class="feature__title">Защита прав детей</h3>
+            <p class="feature__desc">Информация для граждан</p>
+          </div>
+        </a>
+        <a class="feature" href="#">
+          <div class="feature__icon">⚠️</div>
+          <div>
+            <h3 class="feature__title">Уведомление об экстремизме</h3>
+            <p class="feature__desc">Противодействие экстремизму</p>
+          </div>
+        </a>
+        <a class="feature" href="#">
+          <div class="feature__icon">📈</div>
+          <div>
+            <h3 class="feature__title">Правовая статистика</h3>
+            <p class="feature__desc">Портал crimestat.ru</p>
+          </div>
+        </a>
+        <a class="feature" href="#">
+          <div class="feature__icon">🏛️</div>
+          <div>
+            <h3 class="feature__title">Структура</h3>
+            <p class="feature__desc">Сведения об органах и организации прокуратуры</p>
+          </div>
+        </a>
+        <a class="feature" href="#">
+          <div class="feature__icon">✉️</div>
+          <div>
+            <h3 class="feature__title">Обращение в прокуратуру</h3>
+            <p class="feature__desc">Интернет-приемная</p>
+          </div>
+        </a>
+        <a class="feature" href="#">
+          <div class="feature__icon">📄</div>
+          <div>
+            <h3 class="feature__title">Документы</h3>
+            <p class="feature__desc">Нормативные акты и приказы</p>
+          </div>
+        </a>
+      </div>
+    </div>
+    <div class="features__wave" aria-hidden="true">
+      <svg viewBox="0 0 1440 90" preserveAspectRatio="none">
+        <path d="M0,20 C240,40 480,40 720,40 C960,40 1200,40 1440,20 L1440,90 L0,90 Z" fill="#6ba0ff" opacity="0.9"></path>
+      </svg>
+    </div>
+  </section>
+
+  <main id="content">
+    <!-- Контент страницы -->
+    <section class="news" aria-label="Новости">
+      <h2 class="news__title">Новости</h2>
+      <div class="news__slider">
+        {% if news %}
+        <article class="news__slide">
+          <div class="news__image"><img src="{{ news.image }}" alt="Новость"></div>
+          <div class="news__card">
+            <div class="news__date">{{ news.date }}</div>
+            <h3 class="news__headline">{{ news.title }}</h3>
+          </div>
+        </article>
+        {% else %}
+        <article class="news__slide">
+          <div class="news__image"><img src="/logo/logo.png" alt="Новость"></div>
+          <div class="news__card">
+            <div class="news__date">Нет новостей</div>
+            <h3 class="news__headline">Добавьте первую новость в админке</h3>
+          </div>
+        </article>
+        {% endif %}
+        <div class="news__controls">
+          <a class="news__arrow" aria-label="Предыдущая" href="{{ url_for('index', page=(page - 1 if page > 1 else total_pages)) }}">◀</a>
+          <div class="news__dots">
+            {% for i in range(1, (total_pages or 1) + 1) %}
+            <a href="{{ url_for('index', page=i) }}" class="news__dot" aria-current="{{ 'true' if i == page else 'false' }}"></a>
+            {% endfor %}
+          </div>
+          <a class="news__arrow" aria-label="Следующая" href="{{ url_for('index', page=(page + 1 if page < total_pages else 1)) }}">▶</a>
+        </div>
+      </div>
+    </section>
+    <section class="feed" aria-label="Лента новостей">
+      <div class="feed__tabs">
+        <a href="#" class="feed__tab" aria-current="true">Генеральная прокуратура</a>
+        <a href="#" class="feed__tab">Главное в регионах</a>
+        <a href="#" class="feed__tab">Поиск по новостям</a>
+      </div>
+      {% for date, items in feed_groups %}
+        <div class="feed__group">
+          <h3 class="feed__date">{{ date | replace('-', ' ') }}</h3>
+          {% for item in items %}
+            <div class="feed__item">
+              <div class="feed__time">{{ item.time }}</div>
+              <a class="feed__link" href="{{ item.url }}">{{ item.title }}</a>
+            </div>
+          {% endfor %}
+        </div>
+      {% endfor %}
+      <div class="feed__controls">
+        <a class="feed__all" href="#">Все новости</a>
+        <div class="feed__arrows">
+          <a class="feed__arrow" aria-label="Назад" href="{{ url_for('index', page=page, feed_page=(feed_page - 1 if feed_page > 1 else feed_pages)) }}">◀</a>
+          <a class="feed__arrow" aria-label="Вперед" href="{{ url_for('index', page=page, feed_page=(feed_page + 1 if feed_page < feed_pages else 1)) }}">▶</a>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer" aria-label="Контакты и ссылки">
+    <style>
+      .site-footer { background: #0f1f4a; color: #e5edff; margin-top: 32px; }
+      .site-footer__inner { max-width: 1200px; margin: 0 auto; padding: 24px 16px; display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 24px; }
+      .site-footer h3 { margin: 0 0 10px 0; font-size: 16px; color: #ffffff; }
+      .site-footer p { margin: 4px 0; font-size: 14px; }
+      .site-footer a { color: #aecdff; text-decoration: none; }
+      .site-footer a:hover { text-decoration: underline; }
+      .site-footer__brand { display: flex; gap: 12px; align-items: flex-start; }
+      .site-footer__brand img { width: 44px; height: 44px; object-fit: contain; }
+      .site-footer__bottom { border-top: 1px solid rgba(255,255,255,.15); margin-top: 8px; }
+      .site-footer__bottom-inner { max-width: 1200px; margin: 0 auto; padding: 10px 16px; display: flex; flex-wrap: wrap; gap: 12px; align-items: center; justify-content: space-between; font-size: 13px; color: #cdd9ff; }
+      @media (max-width: 780px) { .site-footer__inner { grid-template-columns: 1fr; } }
+    </style>
+    <div class="site-footer__inner">
+      <div>
+        <div class="site-footer__brand">
+          <img src="/logo/logo.png" alt="Герб прокуратуры">
+          <div>
+            <h3>Генеральная прокуратура Российской Федерации</h3>
+          </div>
+        </div>
+      </div>
+      <div>
+        <h3>Сервисы</h3>
+        <p><a href="#">Противодействие коррупции</a></p>
+        <p><a href="#">Интернет-приёмная</a></p>
+        <p><a href="#">Правовая статистика</a></p>
+        <p><a href="#">Структура органов прокуратуры</a></p>
+      </div>
+    </div>
+    <div class="site-footer__bottom">
+      <div class="site-footer__bottom-inner">
+        <span>© RP проект. Все материалы вымышленные, сходство случайно. Логотипы и названия принадлежат их владельцам. epp.genproc.gov.ru</span>
+      </div>
+    </div>
+  </footer>
+
+  
+
+  <script src="{{ url_for('static', filename='js/lang.js') }}"></script>
+  <script src="{{ url_for('static', filename='js/scroll.js') }}"></script>
+  <script src="{{ url_for('static', filename='js/news.js') }}"></script>
+</body>
+</html>
+
+

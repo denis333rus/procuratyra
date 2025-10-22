@@ -1,0 +1,188 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Админ — документооборот</title>
+  <style>
+    html { scroll-behavior: smooth; }
+    :root {
+      --blue-700: #0d47a1;
+      --blue-600: #1565c0;
+      --text-on-blue: #ffffff;
+      --focus: #ffeb3b;
+    }
+
+    * { box-sizing: border-box; }
+    html, body { margin: 0; padding: 0; }
+    body { font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; color: #111; }
+
+    /* Top blue bar */
+    .top-bar {
+      background: var(--blue-700);
+      color: var(--text-on-blue);
+    }
+    .top-bar__content {
+      max-width: 1200px;
+      margin: 0 auto;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 10px 16px;
+      min-height: 48px;
+    }
+    .top-bar__title {
+      margin: 0;
+      font-size: 16px;
+      font-weight: 600;
+      line-height: 1.2;
+      letter-spacing: .2px;
+    }
+    .top-bar__btn {
+      display: inline-block;
+      text-decoration: none;
+      color: var(--text-on-blue);
+      border: 1px solid rgba(255,255,255,.6);
+      padding: 6px 10px;
+      border-radius: 6px;
+      transition: background-color .15s ease, border-color .15s ease;
+    }
+    .top-bar__btn:hover { background: var(--blue-600); }
+    .top-bar__btn:focus-visible {
+      outline: 3px solid var(--focus);
+      outline-offset: 2px;
+    }
+    .lang-switcher {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .lang-switcher__btn {
+      appearance: none;
+      border: 1px solid rgba(255,255,255,.6);
+      color: var(--text-on-blue);
+      background: transparent;
+      padding: 6px 10px;
+      border-radius: 6px;
+      font-size: 14px;
+      cursor: pointer;
+      transition: background-color .15s ease, border-color .15s ease;
+    }
+    .lang-switcher__btn:hover { background: var(--blue-600); }
+    .lang-switcher__btn:focus-visible {
+      outline: 3px solid var(--focus);
+      outline-offset: 2px;
+    }
+
+    /* Brand block under top bar */
+    .brand {
+      max-width: 1200px;
+      margin: 12px auto 0 auto;
+      padding: 0 16px;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+    .brand__logo {
+      flex: 0 0 auto;
+      width: 56px;
+      height: 56px;
+    }
+    .brand__logo img { width: 100%; height: 100%; object-fit: contain; display: block; }
+    .brand__title { margin: 0; font-size: 20px; font-weight: 700; line-height: 1.25; }
+    .brand__spacer { flex: 1 1 auto; }
+    .brand__actions { display: inline-flex; gap: 10px; }
+    .btn { display: inline-block; text-decoration: none; border-radius: 8px; padding: 8px 12px; font-size: 14px; font-weight: 600; }
+    .btn--outline { color: #0d47a1; border: 1px solid #0d47a1; background: #ffffff; }
+    .btn--primary { color: #ffffff; background: #0d47a1; border: 1px solid #0d47a1; }
+    .btn:hover { filter: brightness(0.95); }
+    
+    /* Account info styles */
+    .account-info {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      gap: 4px;
+    }
+    .account-info__name {
+      font-size: 16px;
+      font-weight: 700;
+      color: #0d47a1;
+    }
+    .account-info__role {
+      font-size: 12px;
+      color: #666;
+      margin-bottom: 4px;
+    }
+
+    /* Admin specific styles */
+    .wrap { max-width: 1000px; margin: 0 auto; display: grid; gap: 24px; padding: 24px 16px; }
+    form { display: grid; gap: 10px; grid-template-columns: 1fr 1fr; align-items: end; }
+    input { padding: 10px; border: 1px solid #c9d6ff; border-radius: 8px; }
+    .btn { padding: 10px 14px; border-radius: 8px; border: 1px solid #0d47a1; cursor: pointer; background: #0d47a1; color: #fff; }
+    table { width: 100%; border-collapse: collapse; }
+    th, td { padding: 8px; border-bottom: 1px solid #eef2ff; text-align: left; }
+    .top { display: flex; justify-content: space-between; align-items: center; }
+    nav a { margin-right: 8px; }
+  </style>
+</head>
+<body>
+  <header class="top-bar">
+    <div class="top-bar__content">
+      <h1 class="top-bar__title"><a class="top-bar__btn" href="{{ url_for('index') }}" role="button" aria-label="Перейти на главную страницу">Органы и организации прокуратуры</a></h1>
+      <div class="lang-switcher">
+        <button id="lang-toggle"
+                class="lang-switcher__btn"
+                type="button"
+                aria-label="Сменить язык">
+          RU
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <div class="brand">
+    <div class="brand__logo">
+      <img src="../logo/logo.png" alt="Герб прокуратуры">
+    </div>
+    <h2 class="brand__title">Генеральная прокуратура<br>Российской Федерации</h2>
+    <div class="brand__spacer"></div>
+    <div class="brand__actions">
+      <div class="account-info">
+        <div class="account-info__name">Администратор</div>
+        <div class="account-info__role">Системный администратор</div>
+        <a class="btn btn--outline" href="/admin/logout">Выйти</a>
+      </div>
+    </div>
+  </div>
+  <div class="wrap">
+    <div class="top">
+      <h1>Документооборот</h1>
+      <a class="btn" href="/admin/logout">Выйти</a>
+    </div>
+    <nav>
+      <a href="/admin/important">Важные</a>
+      <a href="/admin/ordinary">Обычные</a>
+      <a href="/admin/employees">Сотрудники</a>
+      <a href="/admin/jobs">Заявки</a>
+      <a href="/admin/docs">Документы</a>
+      <a href="/admin/leader">Лидер</a>
+    </nav>
+    <form method="post" action="/admin/docs/add">
+      <input type="date" name="date">
+      <input type="text" name="title" placeholder="Название документа" required>
+      <input type="text" name="url" placeholder="Ссылка на документ" required>
+      <button class="btn" type="submit">Добавить</button>
+    </form>
+    <table>
+      <thead><tr><th>Дата</th><th>Название</th><th>Ссылка</th></tr></thead>
+      <tbody>
+        {% for d in documents %}
+        <tr><td>{{ d.date }}</td><td>{{ d.title }}</td><td><a href="{{ d.url }}" target="_blank">Открыть</a></td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</body>
+</html>

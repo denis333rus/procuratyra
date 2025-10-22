@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Органы и организации прокуратуры — страница</title>
+  <style>
+    :root { --blue-700: #0d47a1; --blue-600: #1565c0; --text-on-blue: #ffffff; --focus: #ffeb3b; }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; padding: 0; }
+    body { font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; color: #111; }
+    .top-bar { background: var(--blue-700); color: var(--text-on-blue); }
+    .top-bar__content { max-width: 1200px; margin: 0 auto; display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 10px 16px; min-height: 48px; }
+    .top-bar__title { margin: 0; font-size: 16px; font-weight: 600; line-height: 1.2; letter-spacing: .2px; }
+    .home-link { color: var(--text-on-blue); text-decoration: none; border: 1px solid rgba(255,255,255,.6); padding: 6px 10px; border-radius: 6px; }
+    .home-link:hover { background: var(--blue-600); }
+    .lang-switcher { display: inline-flex; align-items: center; gap: 8px; }
+    .lang-switcher__btn { appearance: none; border: 1px solid rgba(255,255,255,.6); color: var(--text-on-blue); background: transparent; padding: 6px 10px; border-radius: 6px; font-size: 14px; cursor: pointer; transition: background-color .15s ease, border-color .15s ease; }
+    .lang-switcher__btn:hover { background: var(--blue-600); }
+    main { padding: 24px 16px; max-width: 1200px; margin: 0 auto; }
+  </style>
+</head>
+<body>
+  <header class="top-bar">
+    <div class="top-bar__content">
+      <h1 class="top-bar__title">Органы и организации прокуратуры</h1>
+      <div class="lang-switcher">
+        <a class="home-link" href="base.html" aria-label="На главную">назад</a>
+        <button id="lang-toggle" class="lang-switcher__btn" type="button" aria-label="Сменить язык">RU</button>
+      </div>
+    </div>
+  </header>
+  <main>
+    <p>Здесь будет содержимое страницы про органы и организации прокуратуры.</p>
+  </main>
+  <script>
+    (function initLanguageSwitcher() {
+      const STORAGE_KEY = 'site_lang';
+      const DEFAULT_LANG = 'ru';
+      const toggleButton = document.getElementById('lang-toggle');
+      if (!toggleButton) return;
+      function getStoredLang() { try { return localStorage.getItem(STORAGE_KEY) || DEFAULT_LANG; } catch { return DEFAULT_LANG; } }
+      function storeLang(lang) { try { localStorage.setItem(STORAGE_KEY, lang); } catch {} }
+      function applyLang(lang) {
+        document.documentElement.lang = lang === 'ru' ? 'ru' : 'en';
+        toggleButton.textContent = (lang === 'ru') ? 'RU' : 'EN';
+        toggleButton.setAttribute('aria-label', (lang === 'ru') ? 'Сменить язык' : 'Change language');
+      }
+      function toggleLang() { const current = getStoredLang(); const next = current === 'ru' ? 'en' : 'ru'; storeLang(next); applyLang(next); }
+      applyLang(getStoredLang());
+      toggleButton.addEventListener('click', toggleLang);
+    })();
+  </script>
+</body>
+</html>
+
+

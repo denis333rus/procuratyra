@@ -1,0 +1,102 @@
+{% extends 'layout.html' %}
+{% block title %}Приём на работу{% endblock %}
+{% block content %}
+  <div class="container" style="max-width:760px;">
+    <h1>Приём на работу</h1>
+    <form method="post" action="/jobs" style="display:grid;gap:12px;">
+      <div style="display:grid;gap:12px;grid-template-columns:1fr 1fr;">
+        <div>
+          <label for="nick_ds">Ваш ник в ДС</label>
+          <input id="nick_ds" name="nick_ds" type="text" placeholder="@username">
+        </div>
+        <div>
+          <label for="nick_roblox">Ваш ник в Roblox</label>
+          <input id="nick_roblox" name="nick_roblox" type="text" placeholder="RobloxNick">
+        </div>
+      </div>
+      <div>
+        <label for="char_name">ФИО персонажа <span aria-hidden="true">*</span></label>
+        <input id="char_name" name="char_name" type="text" required>
+      </div>
+      <div style="display:grid;gap:12px;grid-template-columns:1fr 1fr;">
+        <div>
+          <label for="real_age">Сколько вам лет в реале? <span aria-hidden="true">*</span></label>
+          <input id="real_age" name="real_age" type="number" min="10" max="100" required>
+        </div>
+        <div>
+          <label for="char_birth">Дата рождения вашего персонажа <span aria-hidden="true">*</span></label>
+          <input id="char_birth" name="char_birth" type="date" required>
+        </div>
+      </div>
+      <div style="display:grid;gap:12px;grid-template-columns:1fr 1fr;">
+        <div>
+          <label for="date_now">Дата</label>
+          <input id="date_now" name="date_now" type="date">
+        </div>
+        <div>
+          <label for="char_age">Сколько лет вашему персонажу? <span aria-hidden="true">*</span></label>
+          <input id="char_age" name="char_age" type="number" min="10" max="100" required>
+        </div>
+      </div>
+      <div style="display:grid;gap:12px;grid-template-columns:1fr 1fr;">
+        <div>
+          <label for="char_nationality">Национальность персонажа <span aria-hidden="true">*</span></label>
+          <input id="char_nationality" name="char_nationality" type="text" required>
+        </div>
+        <div>
+          <label for="char_job">Работа, на которой работает персонаж</label>
+          <input id="char_job" name="char_job" type="text" placeholder="Например: юрист, следователь">
+        </div>
+      </div>
+      <div>
+        <label for="char_education">Образование вашего персонажа</label>
+        <input id="char_education" name="char_education" type="text" placeholder="Например: высшее юридическое, МГУ, 2022">
+      </div>
+      <div>
+        <label for="about">Расскажите о себе <span aria-hidden="true">*</span></label>
+        <textarea id="about" name="about" rows="4" required></textarea>
+      </div>
+      <div>
+        <label for="what_is_prosecutor">Объясните своими словами, что такое прокуратура <span aria-hidden="true">*</span></label>
+        <textarea id="what_is_prosecutor" name="what_is_prosecutor" rows="4" required></textarea>
+      </div>
+      <div>
+        <label for="literacy_test">Проверка на грамотность: напишите минимум 5 сложных предложений грамотно <span aria-hidden="true">*</span></label>
+        <textarea id="literacy_test" name="literacy_test" rows="6" required></textarea>
+      </div>
+      <div style="display:grid;gap:12px;grid-template-columns:1fr 1fr;">
+        <div>
+          <label>Имеете ли судимости? <span aria-hidden="true">*</span></label>
+          <select name="has_convictions" required>
+            <option value="no">Нет</option>
+            <option value="yes">Да</option>
+          </select>
+        </div>
+        <div>
+          <label>Имеете ли вы опыт? <span aria-hidden="true">*</span></label>
+          <select name="has_experience" required>
+            <option value="no">Нет</option>
+            <option value="yes">Да</option>
+          </select>
+        </div>
+      </div>
+      <div>
+        <label>Расшифруйте термины:</label>
+        <div style="display:grid;gap:12px;grid-template-columns:1fr 1fr;">
+          <input name="term_upk" type="text" placeholder="УПК — ...">
+          <input name="term_uk" type="text" placeholder="УК — ...">
+        </div>
+        <div style="display:grid;gap:12px;grid-template-columns:1fr 1fr;">
+          <input name="term_koap" type="text" placeholder="КоАП — ...">
+          <input name="term_tk" type="text" placeholder="ТК — ...">
+        </div>
+      </div>
+      <div style="display:flex;gap:10px;">
+        <button class="btn btn--primary" type="submit">Отправить</button>
+        <a class="btn" href="/">На главную</a>
+      </div>
+    </form>
+  </div>
+{% endblock %}
+
+
