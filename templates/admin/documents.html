@@ -117,14 +117,242 @@
     }
 
     /* Admin specific styles */
-    .wrap { max-width: 1000px; margin: 0 auto; display: grid; gap: 24px; padding: 24px 16px; }
-    form { display: grid; gap: 10px; grid-template-columns: 1fr 1fr; align-items: end; }
-    input { padding: 10px; border: 1px solid #c9d6ff; border-radius: 8px; }
-    .btn { padding: 10px 14px; border-radius: 8px; border: 1px solid #0d47a1; cursor: pointer; background: #0d47a1; color: #fff; }
-    table { width: 100%; border-collapse: collapse; }
-    th, td { padding: 8px; border-bottom: 1px solid #eef2ff; text-align: left; }
-    .top { display: flex; justify-content: space-between; align-items: center; }
-    nav a { margin-right: 8px; }
+    .wrap { 
+      max-width: 1200px; 
+      margin: 0 auto; 
+      display: grid; 
+      gap: 32px; 
+      padding: 32px 20px; 
+      background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+      min-height: calc(100vh - 200px);
+    }
+    
+    /* Page header */
+    .page-header {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      padding: 24px;
+      border-radius: 16px;
+      box-shadow: 0 8px 32px rgba(102, 126, 234, 0.3);
+      margin-bottom: 8px;
+    }
+    
+    .page-header h1 {
+      margin: 0;
+      font-size: 28px;
+      font-weight: 700;
+      text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    
+    .page-header .btn {
+      background: rgba(255,255,255,0.2);
+      border: 1px solid rgba(255,255,255,0.3);
+      color: white;
+      backdrop-filter: blur(10px);
+      transition: all 0.3s ease;
+    }
+    
+    .page-header .btn:hover {
+      background: rgba(255,255,255,0.3);
+      transform: translateY(-2px);
+    }
+    
+    /* Navigation */
+    .admin-nav {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+    
+    .admin-nav .btn {
+      padding: 16px 20px;
+      border-radius: 12px;
+      font-weight: 600;
+      font-size: 14px;
+      text-align: center;
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+      border: none;
+      position: relative;
+      overflow: hidden;
+    }
+    
+    .admin-nav .btn::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+      transition: left 0.5s;
+    }
+    
+    .admin-nav .btn:hover::before {
+      left: 100%;
+    }
+    
+    .admin-nav .btn:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+    }
+    
+    .admin-nav .btn.active {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+    }
+    
+    /* Sections */
+    .admin-section {
+      background: white;
+      border-radius: 16px;
+      padding: 24px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+      border: 1px solid rgba(0,0,0,0.05);
+      transition: all 0.3s ease;
+    }
+    
+    .admin-section:hover {
+      box-shadow: 0 8px 32px rgba(0,0,0,0.12);
+      transform: translateY(-2px);
+    }
+    
+    .admin-section h2 {
+      margin: 0 0 20px 0;
+      font-size: 20px;
+      font-weight: 700;
+      color: #2d3748;
+      border-bottom: 3px solid #667eea;
+      padding-bottom: 8px;
+    }
+    
+    /* Forms */
+    .admin-form {
+      display: grid;
+      gap: 16px;
+      grid-template-columns: 1fr 1fr;
+      align-items: end;
+      margin-bottom: 24px;
+      padding: 20px;
+      background: linear-gradient(135deg, #f7fafc 0%, #edf2f7 100%);
+      border-radius: 12px;
+      border: 1px solid #e2e8f0;
+    }
+    
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    
+    .form-group label {
+      font-weight: 600;
+      color: #4a5568;
+      font-size: 14px;
+    }
+    
+    .admin-form input {
+      padding: 12px 16px;
+      border: 2px solid #e2e8f0;
+      border-radius: 8px;
+      font-size: 14px;
+      transition: all 0.3s ease;
+      background: white;
+    }
+    
+    .admin-form input:focus {
+      outline: none;
+      border-color: #667eea;
+      box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+    }
+    
+    .admin-form button {
+      padding: 12px 24px;
+      border-radius: 8px;
+      border: none;
+      cursor: pointer;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      font-weight: 600;
+      font-size: 14px;
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+    }
+    
+    .admin-form button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+    }
+    
+    /* Tables */
+    .admin-table {
+      width: 100%;
+      border-collapse: separate;
+      border-spacing: 0;
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+      background: white;
+    }
+    
+    .admin-table thead {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+    }
+    
+    .admin-table th {
+      padding: 16px;
+      text-align: left;
+      font-weight: 600;
+      font-size: 14px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    
+    .admin-table td {
+      padding: 16px;
+      border-bottom: 1px solid #f1f5f9;
+      font-size: 14px;
+      color: #4a5568;
+    }
+    
+    .admin-table tbody tr {
+      transition: all 0.2s ease;
+    }
+    
+    .admin-table tbody tr:hover {
+      background: #f8fafc;
+      transform: scale(1.01);
+    }
+    
+    .admin-table tbody tr:last-child td {
+      border-bottom: none;
+    }
+    
+    /* Responsive */
+    @media (max-width: 768px) {
+      .admin-nav {
+        grid-template-columns: 1fr;
+      }
+      
+      .admin-form {
+        grid-template-columns: 1fr;
+      }
+      
+      .wrap {
+        padding: 20px 16px;
+        gap: 24px;
+      }
+      
+      .page-header {
+        padding: 20px;
+      }
+      
+      .page-header h1 {
+        font-size: 24px;
+      }
+    }
   </style>
 </head>
 <body>
@@ -146,7 +374,7 @@
     <div class="brand__logo">
       <img src="../logo/logo.png" alt="Герб прокуратуры">
     </div>
-    <h2 class="brand__title">Генеральная прокуратура<br>Российской Федерации</h2>
+    <h2 class="brand__title"><a href="/">Генеральная прокуратура<br>Российской Федерации</a></h2>
     <div class="brand__spacer"></div>
     <div class="brand__actions">
       <div class="account-info">
@@ -157,32 +385,67 @@
     </div>
   </div>
   <div class="wrap">
-    <div class="top">
+    <div class="page-header">
       <h1>Документооборот</h1>
-      <a class="btn" href="/admin/logout">Выйти</a>
     </div>
-    <nav>
-      <a href="/admin/important">Важные</a>
-      <a href="/admin/ordinary">Обычные</a>
-      <a href="/admin/employees">Сотрудники</a>
-      <a href="/admin/jobs">Заявки</a>
-      <a href="/admin/docs">Документы</a>
-      <a href="/admin/leader">Лидер</a>
+    
+    <nav class="admin-nav">
+      <a href="/admin/important" class="btn">Важные новости</a>
+      <a href="/admin/ordinary" class="btn">Обычные новости</a>
+      <a href="/admin/employees" class="btn">Сотрудники</a>
+      <a href="/admin/jobs" class="btn">Заявки на работу</a>
+      <a href="/admin/docs" class="btn active">Документооборот</a>
+      <a href="/admin/leader" class="btn">Лидер</a>
+      <a href="/admin/organs" class="btn">Органы и организации прокуратуры</a>
+      <a href="/admin/contacts" class="btn">Контакты</a>
     </nav>
-    <form method="post" action="/admin/docs/add">
-      <input type="date" name="date">
-      <input type="text" name="title" placeholder="Название документа" required>
-      <input type="text" name="url" placeholder="Ссылка на документ" required>
-      <button class="btn" type="submit">Добавить</button>
-    </form>
-    <table>
-      <thead><tr><th>Дата</th><th>Название</th><th>Ссылка</th></tr></thead>
-      <tbody>
-        {% for d in documents %}
-        <tr><td>{{ d.date }}</td><td>{{ d.title }}</td><td><a href="{{ d.url }}" target="_blank">Открыть</a></td></tr>
-        {% endfor %}
-      </tbody>
-    </table>
+    
+    <div class="admin-section">
+      <h2>Добавить документ</h2>
+      <form method="post" action="/admin/docs/add" class="admin-form">
+        <div class="form-group">
+          <label>Дата</label>
+          <input type="date" name="date">
+        </div>
+        <div class="form-group">
+          <label>Название</label>
+          <input type="text" name="title" placeholder="Название документа" required>
+        </div>
+        <div class="form-group">
+          <label>Описание</label>
+          <textarea name="description" placeholder="Описание документа" rows="3" style="padding: 12px 16px; border: 2px solid #e2e8f0; border-radius: 8px; font-size: 14px; transition: all 0.3s ease; background: white; resize: vertical; font-family: inherit;"></textarea>
+        </div>
+        <div class="form-group" style="grid-column: span 2;">
+          <label>Ссылка</label>
+          <input type="text" name="url" placeholder="Ссылка на документ" required>
+        </div>
+        <button type="submit" style="grid-column: span 2;">Добавить документ</button>
+      </form>
+    </div>
+    
+    <div class="admin-section">
+      <h2>Документы</h2>
+      <table class="admin-table">
+        <thead>
+          <tr>
+            <th>Дата</th>
+            <th>Название</th>
+            <th>Описание</th>
+            <th>Ссылка</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for d in documents %}
+          <tr>
+            <td>{{ d.date }}</td>
+            <td>{{ d.title }}</td>
+            <td>{{ d.description }}</td>
+            <td><a href="{{ d.url }}" target="_blank" class="btn">Открыть</a></td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
   </div>
 </body>
 </html>

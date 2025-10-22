@@ -374,7 +374,7 @@
     <div class="brand__logo">
       <img src="../logo/logo.png" alt="Герб прокуратуры">
     </div>
-    <h2 class="brand__title">Генеральная прокуратура<br>Российской Федерации</h2>
+    <h2 class="brand__title"><a href="/">Генеральная прокуратура<br>Российской Федерации</a></h2>
     <div class="brand__spacer"></div>
     <div class="brand__actions">
       <div class="account-info">
@@ -385,32 +385,65 @@
     </div>
   </div>
   <div class="wrap">
-    <div class="top">
+    <div class="page-header">
       <h1>Сотрудники</h1>
-      <a class="btn" href="/admin/logout">Выйти</a>
     </div>
-    <nav>
-      <a href="/admin/important">Важные</a>
-      <a href="/admin/ordinary">Обычные</a>
-      <a href="/admin/employees">Сотрудники</a>
-      <a href="/admin/jobs">Заявки</a>
-      <a href="/admin/docs">Документы</a>
-      <a href="/admin/leader">Лидер</a>
+    
+    <nav class="admin-nav">
+      <a href="/admin/important" class="btn">Важные новости</a>
+      <a href="/admin/ordinary" class="btn">Обычные новости</a>
+      <a href="/admin/employees" class="btn active">Сотрудники</a>
+      <a href="/admin/jobs" class="btn">Заявки на работу</a>
+      <a href="/admin/docs" class="btn">Документооборот</a>
+      <a href="/admin/leader" class="btn">Лидер</a>
+      <a href="/admin/organs" class="btn">Органы и организации прокуратуры</a>
+      <a href="/admin/contacts" class="btn">Контакты</a>
     </nav>
-    <form method="post" action="/admin/employees/add">
-      <input type="text" name="name" placeholder="ФИО" required>
-      <input type="text" name="position" placeholder="Должность" required>
-      <input type="text" name="contact" placeholder="Контакты (email/телефон)" style="grid-column: span 2;">
-      <button class="btn" type="submit" style="grid-column: span 2;">Добавить</button>
-    </form>
-    <table>
-      <thead><tr><th>ФИО</th><th>Должность</th><th>Контакты</th></tr></thead>
-      <tbody>
-        {% for e in employees %}
-        <tr><td>{{ e.name }}</td><td>{{ e.position }}</td><td>{{ e.contact }}</td></tr>
-        {% endfor %}
-      </tbody>
-    </table>
+    
+    <div class="admin-section">
+      <h2>Добавить сотрудника</h2>
+      <form method="post" action="/admin/employees/add" class="admin-form">
+        <div class="form-group">
+          <label>ФИО</label>
+          <input type="text" name="name" placeholder="ФИО" required>
+        </div>
+        <div class="form-group">
+          <label>Должность</label>
+          <input type="text" name="position" placeholder="Должность" required>
+        </div>
+        <div class="form-group">
+          <label>Звание</label>
+          <input type="text" name="position" placeholder="Звание" required>
+        </div>
+        <div class="form-group">
+          <label>Отдел</label>
+          <input type="text" name="position" placeholder="Отдел" required>
+        </div>
+        <button type="submit" style="grid-column: span 2;">Добавить сотрудника</button>
+      </form>
+    </div>
+    
+    <div class="admin-section">
+      <h2>Список сотрудников</h2>
+      <table class="admin-table">
+        <thead>
+          <tr>
+            <th>ФИО</th>
+            <th>Должность</th>
+            <th>Контакты</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for e in employees %}
+          <tr>
+            <td>{{ e.name }}</td>
+            <td>{{ e.position }}</td>
+            <td>{{ e.contact }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
   </div>
 </body>
 </html>

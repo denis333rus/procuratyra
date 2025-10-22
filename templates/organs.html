@@ -1,57 +1,65 @@
-<!doctype html>
-<html lang="ru">
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Органы и организации прокуратуры — страница</title>
+{% extends 'layout.html' %}
+{% block title %}Органы и организации прокуратуры{% endblock %}
+
+{% block content %}
   <style>
-    :root { --blue-700: #0d47a1; --blue-600: #1565c0; --text-on-blue: #ffffff; --focus: #ffeb3b; }
-    * { box-sizing: border-box; }
-    html, body { margin: 0; padding: 0; }
-    body { font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; color: #111; }
-    .top-bar { background: var(--blue-700); color: var(--text-on-blue); }
-    .top-bar__content { max-width: 1200px; margin: 0 auto; display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 10px 16px; min-height: 48px; }
-    .top-bar__title { margin: 0; font-size: 16px; font-weight: 600; line-height: 1.2; letter-spacing: .2px; }
-    .home-link { color: var(--text-on-blue); text-decoration: none; border: 1px solid rgba(255,255,255,.6); padding: 6px 10px; border-radius: 6px; }
-    .home-link:hover { background: var(--blue-600); }
-    .lang-switcher { display: inline-flex; align-items: center; gap: 8px; }
-    .lang-switcher__btn { appearance: none; border: 1px solid rgba(255,255,255,.6); color: var(--text-on-blue); background: transparent; padding: 6px 10px; border-radius: 6px; font-size: 14px; cursor: pointer; transition: background-color .15s ease, border-color .15s ease; }
-    .lang-switcher__btn:hover { background: var(--blue-600); }
-    main { padding: 24px 16px; max-width: 1200px; margin: 0 auto; }
+    .org-wrap { 
+      max-width: 1200px; 
+      margin: 0 auto; 
+      display: grid; 
+      gap: 24px; 
+      padding: 16px 0 24px 0; 
+    }
+    .org-header {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: #fff;
+      padding: 22px;
+      border-radius: 16px;
+      box-shadow: 0 8px 32px rgba(102, 126, 234, 0.25);
+    }
+    .org-header h2 { margin: 0; font-size: 26px; font-weight: 700; }
+    .org-section { 
+      background: #fff; 
+      border-radius: 16px; 
+      padding: 20px; 
+      box-shadow: 0 4px 20px rgba(0,0,0,0.08); 
+      border: 1px solid #eef2ff; 
+    }
+    .org-list { list-style: none; padding: 0; margin: 0; display: grid; gap: 12px; }
+    .org-item { border: 1px solid #e3e8f5; border-radius: 12px; padding: 14px 16px; transition: box-shadow .2s, transform .2s; background:#fbfdff; }
+    .org-item:hover { box-shadow: 0 8px 20px rgba(0,0,0,0.06); transform: translateY(-2px); }
+    .org-item__name { font-weight: 800; color: #0d47a1; font-size: 16px; margin: 0; }
+    .org-item__desc { color: #445; font-size: 14px; margin: 6px 0 0 0; }
+    .org-item__link { margin-top: 8px; display: inline-block; color: #2b57ff; text-decoration: none; border:1px solid #9db8ff; background:#e8f0ff; padding:6px 10px; border-radius: 8px; }
+    .org-item__link:hover { filter: brightness(.95); }
+    @media (max-width: 640px) { .org-header h2 { font-size: 22px; } }
   </style>
-</head>
-<body>
-  <header class="top-bar">
-    <div class="top-bar__content">
-      <h1 class="top-bar__title">Органы и организации прокуратуры</h1>
-      <div class="lang-switcher">
-        <a class="home-link" href="base.html" aria-label="На главную">назад</a>
-        <button id="lang-toggle" class="lang-switcher__btn" type="button" aria-label="Сменить язык">RU</button>
-      </div>
+
+  <div class="org-wrap">
+    <div class="org-header">
+      <h2>Органы и организации прокуратуры</h2>
     </div>
-  </header>
-  <main>
-    <p>Здесь будет содержимое страницы про органы и организации прокуратуры.</p>
-  </main>
-  <script>
-    (function initLanguageSwitcher() {
-      const STORAGE_KEY = 'site_lang';
-      const DEFAULT_LANG = 'ru';
-      const toggleButton = document.getElementById('lang-toggle');
-      if (!toggleButton) return;
-      function getStoredLang() { try { return localStorage.getItem(STORAGE_KEY) || DEFAULT_LANG; } catch { return DEFAULT_LANG; } }
-      function storeLang(lang) { try { localStorage.setItem(STORAGE_KEY, lang); } catch {} }
-      function applyLang(lang) {
-        document.documentElement.lang = lang === 'ru' ? 'ru' : 'en';
-        toggleButton.textContent = (lang === 'ru') ? 'RU' : 'EN';
-        toggleButton.setAttribute('aria-label', (lang === 'ru') ? 'Сменить язык' : 'Change language');
-      }
-      function toggleLang() { const current = getStoredLang(); const next = current === 'ru' ? 'en' : 'ru'; storeLang(next); applyLang(next); }
-      applyLang(getStoredLang());
-      toggleButton.addEventListener('click', toggleLang);
-    })();
-  </script>
-</body>
-</html>
+
+    <section class="org-section" aria-label="Список подразделений и организаций">
+      {% if items and items|length > 0 %}
+        <ul class="org-list">
+          {% for it in items %}
+            <li class="org-item">
+              <p class="org-item__name">{{ it.name }}</p>
+              {% if it.description %}
+                <p class="org-item__desc">{{ it.description }}</p>
+              {% endif %}
+              {% if it.url %}
+                <a class="org-item__link" href="{{ it.url }}" target="_blank" rel="noopener">Перейти</a>
+              {% endif %}
+            </li>
+          {% endfor %}
+        </ul>
+      {% else %}
+        <p style="color:#666; margin:0;">Пока нет записей. Добавьте через админ-панель.</p>
+      {% endif %}
+    </section>
+  </div>
+{% endblock %}
 
 

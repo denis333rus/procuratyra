@@ -374,7 +374,7 @@
     <div class="brand__logo">
       <img src="../logo/logo.png" alt="Герб прокуратуры">
     </div>
-    <h2 class="brand__title">Генеральная прокуратура<br>Российской Федерации</h2>
+    <h2 class="brand__title"><a href="/"></a>Генеральная прокуратура<br>Российской Федерации</a></h2>
     <div class="brand__spacer"></div>
     <div class="brand__actions">
       <div class="account-info">
@@ -385,26 +385,75 @@
     </div>
   </div>
   <div class="wrap">
-    <div class="top">
+    <div class="page-header">
       <h1>Заявки на приём</h1>
-      <a class="btn" href="/admin/logout">Выйти</a>
     </div>
-    <nav>
-      <a href="/admin/important">Важные</a>
-      <a href="/admin/ordinary">Обычные</a>
-      <a href="/admin/employees">Сотрудники</a>
-      <a href="/admin/jobs">Заявки</a>
-      <a href="/admin/docs">Документы</a>
-      <a href="/admin/leader">Лидер</a>
+    
+    <nav class="admin-nav">
+      <a href="/admin/important" class="btn">Важные новости</a>
+      <a href="/admin/ordinary" class="btn">Обычные новости</a>
+      <a href="/admin/employees" class="btn">Сотрудники</a>
+      <a href="/admin/jobs" class="btn active">Заявки на работу</a>
+      <a href="/admin/docs" class="btn">Документооборот</a>
+      <a href="/admin/leader" class="btn">Лидер</a>
+      <a href="/admin/organs" class="btn">Органы и организации прокуратуры</a>
+      <a href="/admin/contacts" class="btn">Контакты</a>
     </nav>
-    <table>
-      <thead><tr><th>Когда</th><th>Персонаж</th><th>Возраст</th><th>Нац.</th><th>Работа</th></tr></thead>
-      <tbody>
-        {% for a in job_apps %}
-        <tr><td>{{ a.created_at }}</td><td>{{ a.char_name }}</td><td>{{ a.char_age }}</td><td>{{ a.char_nationality }}</td><td>{{ a.char_job }}</td></tr>
-        {% endfor %}
-      </tbody>
-    </table>
+    
+    <div class="admin-section">
+      <h2>Заявки на работу</h2>
+      <table class="admin-table">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Дата подачи</th>
+            <th>Персонаж</th>
+            <th>Возраст</th>
+            <th>Национальность</th>
+            <th>Работа</th>
+            <th>Желаемый логин</th>
+            <th>Статус</th>
+            <th>Действия</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for a in job_apps %}
+          <tr>
+            <td>{{ a.id }}</td>
+            <td>{{ a.created_at }}</td>
+            <td>{{ a.char_name }}</td>
+            <td>{{ a.char_age }}</td>
+            <td>{{ a.char_nationality }}</td>
+            <td>{{ a.char_job }}</td>
+            <td>{{ a.desired_login }}</td>
+            <td>
+              {% if a.status == 'pending' %}
+                <span style="color: #f59e0b; font-weight: 600;">Ожидает</span>
+              {% elif a.status == 'approved' %}
+                <span style="color: #10b981; font-weight: 600;">Одобрено</span>
+              {% elif a.status == 'rejected' %}
+                <span style="color: #ef4444; font-weight: 600;">Отклонено</span>
+              {% else %}
+                <span style="color: #6b7280;">{{ a.status }}</span>
+              {% endif %}
+            </td>
+            <td>
+              {% if a.status == 'pending' %}
+                <form method="post" action="{{ url_for('admin_approve_job', app_id=a.id) }}" style="display: inline-block; margin-right: 8px;">
+                  <button type="submit" style="background: #10b981; color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-size: 12px;">Одобрить</button>
+                </form>
+                <form method="post" action="{{ url_for('admin_reject_job', app_id=a.id) }}" style="display: inline-block;">
+                  <button type="submit" style="background: #ef4444; color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-size: 12px;">Отклонить</button>
+                </form>
+              {% else %}
+                <span style="color: #6b7280; font-size: 12px;">—</span>
+              {% endif %}
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
   </div>
 </body>
 </html>

@@ -1,0 +1,44 @@
+{% extends 'layout.html' %}
+{% block title %}О ведомстве{% endblock %}
+
+{% block content %}
+  <style>
+    .about-wrap { max-width: 980px; margin: 0 auto; display: grid; gap: 22px; }
+    .about-title { margin: 0; font-size: 36px; font-weight: 800; color: #111; }
+    .about-text { margin: 0; line-height: 1.9; font-size: 18px; color: #111; }
+    .about-text strong { font-weight: 800; }
+    .about-logo { display: grid; place-items: center; margin-top: 10px; }
+    .about-logo img { width: 340px; height: auto; object-fit: contain; }
+    .laws-card { background:#fff; border:1px solid #e6ecff; border-radius:16px; box-shadow:0 4px 18px rgba(0,0,0,.08); padding:18px; }
+    .laws-title { margin:0 0 10px 0; font-size:18px; color:#2b3a5a; }
+    .laws { list-style:none; padding:0; margin: 0; display:grid; gap:10px; }
+    .laws a { color:#2b57ff; text-decoration:none; border:1px solid #9db8ff; background:#e8f0ff; padding:8px 12px; border-radius:10px; display:inline-block; }
+    .laws a:hover { filter:brightness(.96); }
+  </style>
+
+  <div class="about-wrap">
+    <h1 class="about-title">О ведомстве</h1>
+    <p class="about-text">
+      <strong>Прокуратура Российской Федерации</strong> — единая федеральная централизованная система органов,
+      осуществляющих надзор за соблюдением Конституции Российской Федерации и исполнением законов,
+      надзор за соблюдением прав и свобод человека и гражданина, уголовное преследование в соответствии
+      со своими полномочиями, а также выполняющих иные функции.
+    </p>
+    <div class="about-logo">
+      <img src="/logo/logo.png" alt="Герб прокуратуры">
+    </div>
+
+    <div class="laws-card">
+      <h2 class="laws-title">Правовые основы деятельности</h2>
+      <ul class="laws">
+        <li><a href="/pdf/1.pdf" target="_blank" rel="noopener">Конституция Российской Федерации</a></li>
+        <li><a href="/pdf/2.pdf" target="_blank" rel="noopener">Гражданский процессуальный кодекс Российской Федерации</a></li>
+        <li><a href="/pdf/3.pdf" target="_blank" rel="noopener">Федеральный закон «О прокуратуре Российской Федерации»</a></li>
+        <li><a href="/pdf/4.pdf" target="_blank" rel="noopener">Уголовный процессуальный кодекс Российской Федерации</a></li>
+        <li><a href="/pdf/5.pdf" target="_blank" rel="noopener">Уголовный кодекс Российской Федерации</a></li>
+      </ul>
+    </div>
+  </div>
+{% endblock %}
+
+

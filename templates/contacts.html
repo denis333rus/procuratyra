@@ -1,0 +1,56 @@
+{% extends 'layout.html' %}
+{% block title %}Контакты{% endblock %}
+
+{% block content %}
+  <style>
+    .contacts-wrap { max-width: 980px; margin: 0 auto; display: grid; gap: 18px; }
+    .contacts-header { background: linear-gradient(135deg,#667eea 0%, #764ba2 100%); color:#fff; padding: 22px; border-radius: 16px; box-shadow: 0 8px 28px rgba(102,126,234,.28); }
+    .contacts-title { margin: 0; font-size: 28px; font-weight: 800; }
+    .controls { display:flex; gap:10px; }
+    .search { flex:1 1 auto; padding:10px 12px; border:1px solid #cfe0ff; border-radius:10px; font:inherit; background:#fbfdff; }
+    .list { list-style: none; padding: 0; margin: 0; display: grid; gap: 10px; }
+    .item { display:flex; gap:12px; align-items: baseline; background:#fff; border:1px solid #e6ecff; border-radius:12px; padding:14px 16px; box-shadow:0 4px 12px rgba(0,0,0,.06); transition: box-shadow .2s, transform .2s; }
+    .item:hover { box-shadow:0 8px 22px rgba(0,0,0,.1); transform: translateY(-2px); }
+    .label { color:#0d47a1; font-weight:800; min-width: 200px; }
+    .value a { color:#2b57ff; text-decoration:none; }
+  </style>
+
+  <div class="contacts-wrap">
+    <div class="contacts-header">
+      <h1 class="contacts-title">Контакты</h1>
+      <div class="controls" style="margin-top:10px;">
+        <input id="contacts-search" class="search" type="search" placeholder="Поиск по метке или значению...">
+      </div>
+    </div>
+    {% if contacts and contacts|length > 0 %}
+      <ul class="list">
+        {% for c in contacts %}
+          <li class="item" data-label="{{ c.label|lower }}" data-value="{{ c.value|lower }}">
+            <div class="label">{{ c.label }}</div>
+            <div class="value">{{ c.value|safe }}</div>
+          </li>
+        {% endfor %}
+      </ul>
+    {% else %}
+      <p style="color:#666;">Контакты пока не добавлены.</p>
+    {% endif %}
+  </div>
+  <script>
+    (function(){
+      var input = document.getElementById('contacts-search');
+      if(!input) return;
+      var items = Array.prototype.slice.call(document.querySelectorAll('.item'));
+      function apply(){
+        var q = (input.value||'').toLowerCase();
+        items.forEach(function(li){
+          var a = li.getAttribute('data-label')||'';
+          var b = li.getAttribute('data-value')||'';
+          li.style.display = (!q || a.indexOf(q)!==-1 || b.indexOf(q)!==-1) ? '' : 'none';
+        });
+      }
+      input.addEventListener('input', apply);
+    })();
+  </script>
+{% endblock %}
+
+

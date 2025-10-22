@@ -374,7 +374,7 @@
     <div class="brand__logo">
       <img src="../logo/logo.png" alt="Герб прокуратуры">
     </div>
-    <h2 class="brand__title">Генеральная прокуратура<br>Российской Федерации</h2>
+    <h2 class="brand__title"><a href="/">Генеральная прокуратура<br>Российской Федерации</a></h2>
     <div class="brand__spacer"></div>
     <div class="brand__actions">
       <div class="account-info">
@@ -386,52 +386,73 @@
   </div>
   <div class="wrap">
     <div class="page-header">
-      <div style="display: flex; justify-content: space-between; align-items: center;">
-        <h1>📋 Обычные новости (лента)</h1>
-      <a class="btn" href="/admin/logout">Выйти</a>
-      </div>
+      <h1>Обычные новости</h1>
     </div>
     
     <nav class="admin-nav">
-      <a href="/admin/important" class="btn">📰 Важные</a>
-      <a href="/admin/ordinary" class="btn active">📋 Обычные</a>
-      <a href="/admin/employees" class="btn">👥 Сотрудники</a>
-      <a href="/admin/jobs" class="btn">💼 Заявки</a>
-      <a href="/admin/docs" class="btn">📄 Документы</a>
-      <a href="/admin/leader" class="btn">👑 Лидер</a>
+      <a href="/admin/important" class="btn">Важные новости</a>
+      <a href="/admin/ordinary" class="btn active">Обычные новости</a>
+      <a href="/admin/employees" class="btn">Сотрудники</a>
+      <a href="/admin/jobs" class="btn">Заявки на работу</a>
+      <a href="/admin/docs" class="btn">Документооборот</a>
+      <a href="/admin/leader" class="btn">Лидер</a>
+      <a href="/admin/organs" class="btn">Органы и организации прокуратуры</a>
+      <a href="/admin/contacts" class="btn">Контакты</a>
     </nav>
     
     <div class="admin-section">
-      <h2>✨ Добавить новость в ленту</h2>
+      <h2>Добавить новость в ленту</h2>
       <form method="post" action="/admin/feed/add" class="admin-form">
         <div class="form-group">
-          <label for="date">Дата</label>
-          <input id="date" type="date" name="date" required>
+          <label>Дата</label>
+          <input type="date" name="date" required>
         </div>
         <div class="form-group">
-          <label for="time">Время</label>
-          <input id="time" type="time" name="time" required>
+          <label>Время</label>
+          <input type="time" name="time" required>
         </div>
         <div class="form-group" style="grid-column: span 2;">
-          <label for="title">Заголовок</label>
-          <input id="title" type="text" name="title" placeholder="Введите заголовок новости" required>
+          <label>Заголовок</label>
+          <input type="text" name="title" placeholder="Введите заголовок новости" required>
         </div>
         <div class="form-group" style="grid-column: span 2;">
-          <label for="url">Ссылка</label>
-          <input id="url" type="text" name="url" placeholder="# (по умолчанию)">
-      </div>
-        <button type="submit" style="grid-column: span 2;">✨ Добавить в ленту</button>
-    </form>
-      
-      <h2>📋 Список новостей в ленте</h2>
+          <label>Описание</label>
+          <textarea name="description" placeholder="Введите описание новости" rows="3" style="padding: 12px 16px; border: 2px solid #e2e8f0; border-radius: 8px; font-size: 14px; transition: all 0.3s ease; background: white; resize: vertical; font-family: inherit;"></textarea>
+        </div>
+        <button type="submit" style="grid-column: span 2;">Добавить в ленту</button>
+      </form>
+    </div>
+    
+    <div class="admin-section">
+      <h2>Список новостей в ленте</h2>
       <table class="admin-table">
-      <thead><tr><th>Дата</th><th>Время</th><th>Заголовок</th></tr></thead>
-      <tbody>
-        {% for f in feed %}
-        <tr><td>{{ f.date }}</td><td>{{ f.time }}</td><td>{{ f.title }}</td></tr>
-        {% endfor %}
-      </tbody>
-    </table>
+        <thead>
+          <tr>
+            <th>Дата</th>
+            <th>Время</th>
+            <th>Заголовок</th>
+            <th>Описание</th>
+            <th>Ссылка</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for f in feed %}
+          <tr>
+            <td>{{ f.date }}</td>
+            <td>{{ f.time }}</td>
+            <td>{{ f.title }}</td>
+            <td>{{ f.description[:50] }}{% if f.description|length > 50 %}...{% endif %}</td>
+            <td>
+              {% if f.url and f.url != '#' %}
+                <a href="{{ f.url }}" target="_blank" class="btn" style="padding: 4px 8px; font-size: 12px;">Открыть</a>
+              {% else %}
+                <span style="color: #999;">Нет ссылки</span>
+              {% endif %}
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
     </div>
   </div>
 </body>

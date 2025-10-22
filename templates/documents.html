@@ -1,0 +1,83 @@
+{% extends 'layout.html' %}
+{% block title %}Документы{% endblock %}
+
+{% block content %}
+  <style>
+    .docs-wrap { max-width: 1100px; margin: 0 auto; display: grid; gap: 22px; }
+    .docs-title { margin: 0; font-size: 32px; font-weight: 800; color: #111; }
+    .docs-controls { display:flex; gap:10px; align-items:center; }
+    .docs-search { flex:1 1 auto; padding:10px 12px; border:1px solid #cfe0ff; border-radius:10px; font:inherit; background:#fbfdff; }
+    .doc-list { list-style: none; padding: 0; margin: 0; display: grid; gap: 14px; }
+    .doc-item { background:#fff; border:1px solid #e6ecff; border-radius:12px; box-shadow:0 4px 14px rgba(0,0,0,.08); padding:16px; transition: box-shadow .2s, transform .2s; }
+    .doc-item:hover { box-shadow:0 8px 24px rgba(0,0,0,.12); transform: translateY(-2px); }
+    .doc-head { display:flex; align-items:baseline; gap:10px; flex-wrap:wrap; }
+    .doc-date { color:#6b7aa6; font-size:13px; }
+    .doc-title { margin:0; font-size:18px; font-weight:800; color:#0d47a1; }
+    .doc-badges { display:inline-flex; gap:8px; align-items:center; }
+    .badge { display:inline-block; padding:4px 8px; border:1px solid #9db8ff; background:#e8f0ff; color:#2b57ff; border-radius:999px; font-size:12px; font-weight:700; }
+    .doc-desc { margin:6px 0 0 0; color:#2b3a5a; font-size:14px; }
+    .doc-footer { display:flex; gap:10px; align-items:center; justify-content:space-between; margin-top:8px; }
+    .doc-link { display:inline-block; color:#2b57ff; text-decoration:none; border:1px solid #9db8ff; background:#e8f0ff; padding:8px 12px; border-radius:10px; }
+    .doc-url { color:#6b7aa6; font-size:12px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:70%; }
+  </style>
+
+  <div class="docs-wrap">
+    <h1 class="docs-title">Документы</h1>
+    <div class="docs-controls">
+      <input class="docs-search" id="docs-search" type="search" placeholder="Поиск по названию или описанию...">
+    </div>
+
+    {% if documents and documents|length > 0 %}
+      <ul class="doc-list">
+        {% for d in documents %}
+          <li class="doc-item" data-title="{{ d.title|lower }}" data-desc="{{ (d.description or '')|lower }}">
+            <div class="doc-head">
+              {% if d.date %}<span class="doc-date">{{ d.date }}</span>{% endif %}
+              <h3 class="doc-title">{{ d.title }}</h3>
+              <span class="doc-badges">
+                {% set is_gdoc = 'docs.google' in (d.url or '') %}
+                {% set ext = (d.url or '')|lower %}
+                {% if is_gdoc %}
+                  <span class="badge">Google Docs</span>
+                {% elif ext.endswith('.pdf') %}
+                  <span class="badge">PDF</span>
+                {% elif ext.endswith('.doc') or ext.endswith('.docx') %}
+                  <span class="badge">DOC</span>
+                {% else %}
+                  <span class="badge">Ссылка</span>
+                {% endif %}
+              </span>
+            </div>
+            {% if d.description %}
+              <p class="doc-desc">{{ d.description }}</p>
+            {% endif %}
+            <div class="doc-footer">
+              <a class="doc-link" href="{{ d.url }}" target="_blank" rel="noopener">Открыть документ</a>
+              <span class="doc-url">{{ d.url }}</span>
+            </div>
+          </li>
+        {% endfor %}
+      </ul>
+    {% else %}
+      <p style="color:#666;">Пока нет документов.</p>
+    {% endif %}
+  </div>
+  <script>
+    (function(){
+      var input = document.getElementById('docs-search');
+      if(!input) return;
+      var items = Array.prototype.slice.call(document.querySelectorAll('.doc-item'));
+      function apply(){
+        var q = (input.value || '').toLowerCase();
+        items.forEach(function(li){
+          var t = li.getAttribute('data-title') || '';
+          var d = li.getAttribute('data-desc') || '';
+          li.style.display = (!q || t.indexOf(q) !== -1 || d.indexOf(q) !== -1) ? '' : 'none';
+        });
+      }
+      input.addEventListener('input', apply);
+    })();
+  </script>
+{% endblock %}
+
+

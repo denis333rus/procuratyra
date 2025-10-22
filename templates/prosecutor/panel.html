@@ -1,0 +1,475 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Панель прокурора</title>
+  <style>
+    html { scroll-behavior: smooth; }
+    :root {
+      --blue-700: #0d47a1;
+      --blue-600: #1565c0;
+      --text-on-blue: #ffffff;
+      --focus: #ffeb3b;
+    }
+
+    * { box-sizing: border-box; }
+    html, body { margin: 0; padding: 0; }
+    body { font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; color: #111; }
+
+    /* Top blue bar */
+    .top-bar {
+      background: var(--blue-700);
+      color: var(--text-on-blue);
+    }
+    .top-bar__content {
+      max-width: 1200px;
+      margin: 0 auto;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 10px 16px;
+      min-height: 48px;
+    }
+    .top-bar__title {
+      margin: 0;
+      font-size: 16px;
+      font-weight: 600;
+      line-height: 1.2;
+      letter-spacing: .2px;
+    }
+    .top-bar__btn {
+      display: inline-block;
+      text-decoration: none;
+      color: var(--text-on-blue);
+      border: 1px solid rgba(255,255,255,.6);
+      padding: 6px 10px;
+      border-radius: 6px;
+      transition: background-color .15s ease, border-color .15s ease;
+    }
+    .top-bar__btn:hover { background: var(--blue-600); }
+    .top-bar__btn:focus-visible {
+      outline: 3px solid var(--focus);
+      outline-offset: 2px;
+    }
+
+    /* Brand block under top bar */
+    .brand {
+      max-width: 1200px;
+      margin: 12px auto 0 auto;
+      padding: 0 16px;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+    .brand__logo {
+      flex: 0 0 auto;
+      width: 56px;
+      height: 56px;
+    }
+    .brand__logo img { width: 100%; height: 100%; object-fit: contain; display: block; }
+    .brand__title { margin: 0; font-size: 20px; font-weight: 700; line-height: 1.25; }
+    .brand__spacer { flex: 1 1 auto; }
+    .brand__actions { display: inline-flex; gap: 10px; }
+    .btn { display: inline-block; text-decoration: none; border-radius: 8px; padding: 8px 12px; font-size: 14px; font-weight: 600; }
+    .btn--outline { color: #0d47a1; border: 1px solid #0d47a1; background: #ffffff; }
+    .btn--primary { color: #ffffff; background: #0d47a1; border: 1px solid #0d47a1; }
+    .btn:hover { filter: brightness(0.95); }
+    
+    /* Account info styles */
+    .account-info {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      gap: 4px;
+    }
+    .account-info__name {
+      font-size: 16px;
+      font-weight: 700;
+      color: #0d47a1;
+    }
+    .account-info__role {
+      font-size: 12px;
+      color: #666;
+      margin-bottom: 4px;
+    }
+
+    /* Prosecutor specific styles */
+    .wrap { 
+      max-width: 1200px; 
+      margin: 0 auto; 
+      display: grid; 
+      gap: 32px; 
+      padding: 32px 20px; 
+      background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+      min-height: calc(100vh - 200px);
+    }
+    
+    /* Page header */
+    .page-header {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      padding: 24px;
+      border-radius: 16px;
+      box-shadow: 0 8px 32px rgba(102, 126, 234, 0.3);
+      margin-bottom: 8px;
+    }
+    
+    .page-header h1 {
+      margin: 0;
+      font-size: 28px;
+      font-weight: 700;
+      text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    
+    .page-header .btn {
+      background: rgba(255,255,255,0.2);
+      border: 1px solid rgba(255,255,255,0.3);
+      color: white;
+    }
+    
+    .page-header .btn:hover {
+      background: rgba(255,255,255,0.3);
+    }
+
+    /* Cards */
+    .card {
+      background: #ffffff;
+      border-radius: 16px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+      border: 1px solid #e2e8f0;
+      overflow: hidden;
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+    
+    .card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 30px rgba(0,0,0,0.12);
+    }
+    
+    .card__header {
+      background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+      padding: 20px 24px;
+      border-bottom: 1px solid #e2e8f0;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    
+    .card__title {
+      margin: 0;
+      font-size: 20px;
+      font-weight: 700;
+      color: #1e293b;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    
+    .card__body {
+      padding: 24px;
+    }
+
+    /* Forms */
+    .form-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+    }
+    
+    .form-field {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    
+    .form-field.full-width {
+      grid-column: 1 / -1;
+    }
+    
+    .form-label {
+      font-size: 14px;
+      font-weight: 600;
+      color: #374151;
+      margin-bottom: 4px;
+    }
+    
+    .form-input,
+    .form-textarea {
+      width: 100%;
+      padding: 12px 16px;
+      border: 2px solid #e5e7eb;
+      border-radius: 10px;
+      font-size: 14px;
+      transition: border-color 0.2s ease, box-shadow 0.2s ease;
+      background: #ffffff;
+    }
+    
+    .form-input:focus,
+    .form-textarea:focus {
+      outline: none;
+      border-color: #3b82f6;
+      box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+    }
+    
+    .form-textarea {
+      min-height: 100px;
+      resize: vertical;
+    }
+
+    /* Tables */
+    .table-container {
+      overflow-x: auto;
+      border-radius: 12px;
+      border: 1px solid #e5e7eb;
+    }
+    
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background: #ffffff;
+    }
+    
+    th {
+      background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+      color: #374151;
+      font-weight: 700;
+      font-size: 14px;
+      padding: 16px 20px;
+      text-align: left;
+      border-bottom: 2px solid #e5e7eb;
+    }
+    
+    td {
+      padding: 16px 20px;
+      border-bottom: 1px solid #f1f5f9;
+      font-size: 14px;
+      color: #4b5563;
+    }
+    
+    tr:hover {
+      background: #f8fafc;
+    }
+    
+    tr:last-child td {
+      border-bottom: none;
+    }
+
+    /* Status badges */
+    .status-badge {
+      display: inline-block;
+      padding: 4px 12px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    
+    .status-badge.pending {
+      background: #fef3c7;
+      color: #92400e;
+    }
+    
+    .status-badge.claimed {
+      background: #dbeafe;
+      color: #1e40af;
+    }
+    
+    .status-badge.free {
+      background: #d1fae5;
+      color: #065f46;
+    }
+
+    /* Action buttons */
+    .action-btn {
+      padding: 8px 16px;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 600;
+      text-decoration: none;
+      display: inline-block;
+      transition: all 0.2s ease;
+      border: none;
+      cursor: pointer;
+    }
+    
+    .action-btn.primary {
+      background: #3b82f6;
+      color: white;
+    }
+    
+    .action-btn.primary:hover {
+      background: #2563eb;
+      transform: translateY(-1px);
+    }
+    
+    .action-btn.secondary {
+      background: #f1f5f9;
+      color: #64748b;
+    }
+    
+    .action-btn.secondary:hover {
+      background: #e2e8f0;
+    }
+  </style>
+</head>
+<body>
+  <!-- Top blue bar -->
+  <div class="top-bar">
+    <div class="top-bar__content">
+      <h1 class="top-bar__title">Панель прокурора</h1>
+      <div class="lang-switcher">
+        <a href="/" class="top-bar__btn">На сайт</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Brand section -->
+  <div class="brand">
+    <div class="brand__logo">
+      <img src="/logo/logo.png" alt="Герб прокуратуры">
+    </div>
+    <h2 class="brand__title">Генеральная прокуратура<br>Российской Федерации</h2>
+    <div class="brand__spacer"></div>
+    <div class="brand__actions">
+      <div class="account-info">
+        <div class="account-info__name">{{ proc_name }}</div>
+        <div class="account-info__role">Прокурор</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main content -->
+  <div class="wrap">
+    <!-- Page header -->
+    <div class="page-header">
+      <h1>Панель прокурора</h1>
+      <p style="margin: 8px 0 0 0; opacity: 0.9;">Управление документами и жалобами</p>
+    </div>
+
+    <!-- Document creation form -->
+    <div class="card">
+      <div class="card__header">
+        <h2 class="card__title">📝 Создание документа</h2>
+      </div>
+      <div class="card__body">
+        <form method="post" action="{{ url_for('prosecutor_add_draft') }}" class="form-grid">
+          <div class="form-field full-width">
+            <label class="form-label">Заголовок документа</label>
+            <input class="form-input" type="text" name="title" required placeholder="Введите заголовок документа">
+          </div>
+          <div class="form-field full-width">
+            <label class="form-label">Описание</label>
+            <textarea class="form-textarea" name="description" placeholder="Краткое описание документа"></textarea>
+          </div>
+          <div class="form-field full-width">
+            <label class="form-label">Ссылка (Google Docs или PDF)</label>
+            <input class="form-input" type="url" name="url" placeholder="https://...">
+          </div>
+          <div class="form-field">
+            <button class="action-btn primary" type="submit">Отправить на проверку администратору</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- Complaints section -->
+    <div class="card">
+      <div class="card__header">
+        <h2 class="card__title">📋 Жалобы из интернет‑приёмной</h2>
+      </div>
+      <div class="card__body">
+        <div class="table-container">
+          <table>
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Создано</th>
+                <th>ФИО</th>
+                <th>Ник в ДС</th>
+                <th>Нарушитель</th>
+                <th>Описание</th>
+                <th>Фото</th>
+                <th>Статус</th>
+                <th>Действие</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for c in complaints %}
+              <tr>
+                <td>{{ c.id }}</td>
+                <td>{{ c.created_at }}</td>
+                <td>{{ c.fio }}</td>
+                <td>{{ c.nick_ds }}</td>
+                <td>{{ c.violator_roblox }}{% if c.violator_ds %} / {{ c.violator_ds }}{% endif %}</td>
+                <td style="max-width:360px;">{{ c.details }}</td>
+                <td>{% if c.image %}<a href="{{ c.image }}" target="_blank" class="action-btn secondary">Открыть</a>{% else %}—{% endif %}</td>
+                <td>
+                  {% if c.claimed_by %}
+                    <span class="status-badge claimed">В работе: {{ c.claimed_by }}</span>
+                  {% else %}
+                    <span class="status-badge free">Свободна</span>
+                  {% endif %}
+                </td>
+                <td>
+                  {% if not c.claimed_by %}
+                    <form method="post" action="{{ url_for('prosecutor_claim', cid=c.id) }}" style="display: inline;">
+                      <button class="action-btn primary" type="submit">Взять</button>
+                    </form>
+                  {% else %}
+                    <span class="action-btn secondary">—</span>
+                  {% endif %}
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- Drafts section -->
+    <div class="card">
+      <div class="card__header">
+        <h2 class="card__title">📄 Мои черновики документов</h2>
+      </div>
+      <div class="card__body">
+        <div class="table-container">
+          <table>
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Дата</th>
+                <th>Заголовок</th>
+                <th>Описание</th>
+                <th>Ссылка</th>
+                <th>Статус</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for d in drafts %}
+              <tr>
+                <td>{{ d.id }}</td>
+                <td>{{ d.created_at }}</td>
+                <td>{{ d.title }}</td>
+                <td>{{ d.description }}</td>
+                <td>{% if d.url %}<a href="{{ d.url }}" target="_blank" class="action-btn secondary">Открыть</a>{% else %}—{% endif %}</td>
+                <td>
+                  <span class="status-badge {% if d.status == 'pending' %}pending{% elif d.status == 'approved' %}claimed{% else %}free{% endif %}">
+                    {{ d.status }}
+                  </span>
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>
+
+

@@ -1,0 +1,99 @@
+{% set page_title = 'Органы и организации' %}
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Админка — {{ page_title }}</title>
+  <style>
+    body { font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; margin: 0; color: #111; background:#f7f9ff; }
+    .container { max-width: 1100px; margin: 24px auto; padding: 0 16px; }
+    .card { background:#fff; border:1px solid #e3e8f5; border-radius:12px; box-shadow: 0 4px 14px rgba(31,80,179,.08); }
+    .card__header { padding:16px 18px; border-bottom:1px solid #eef2ff; display:flex; align-items:center; justify-content:space-between; }
+    .card__title { margin:0; font-size:18px; color:#0d47a1; }
+    .card__body { padding: 16px 18px; }
+    .grid { display:grid; gap:12px; }
+    .field { display:grid; gap:6px; }
+    .label { font-size:13px; color:#2b3a5a; }
+    .input, .textarea { width:100%; padding:10px 1px; border:1px solid #cfe0ff; border-radius:8px; font:inherit; background:#fbfdff; }
+    .textarea { min-height: 84px; resize: vertical; }
+    .btn { display:inline-block; padding:10px 14px; border-radius:8px; font-weight:600; cursor:pointer; text-decoration:none; }
+    .btn--primary { color:#fff; background:#0d47a1; border:1px solid #0d47a1; }
+    .btn--danger { color:#b00020; background:#fff; border:1px solid #ffb3bd; }
+    table { width:100%; border-collapse: collapse; }
+    th, td { padding:10px 12px; border-bottom:1px solid #eef2ff; text-align:left; vertical-align:top; }
+    th { background:#f3f7ff; color:#2b3a5a; font-weight:700; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="card" style="margin-bottom:16px;">
+      <div class="card__header">
+        <h2 class="card__title">{{ page_title }} — добавление</h2>
+        <a class="btn btn--primary" href="{{ url_for('admin_home') }}">К разделам админки</a>
+      </div>
+      <div class="card__body">
+        <form method="post" action="{{ url_for('admin_add_organ') }}" class="grid" style="grid-template-columns:1fr;">
+          <div class="field">
+            <label class="label">Название</label>
+            <input class="input" type="text" name="name" required>
+          </div>
+          <div class="field">
+            <label class="label">Описание</label>
+            <textarea class="textarea" name="description" placeholder="Краткое описание"></textarea>
+          </div>
+          <div class="field">
+            <label class="label">Ссылка (необязательно)</label>
+            <input class="input" type="url" name="url" placeholder="https://...">
+          </div>
+          <div>
+            <button class="btn btn--primary" type="submit">Добавить</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card__header">
+        <h2 class="card__title">Список</h2>
+      </div>
+      <div class="card__body">
+        {% if items and items|length > 0 %}
+        <div style="overflow:auto;">
+          <table>
+            <thead>
+              <tr>
+                <th style="width:34px;">#</th>
+                <th>Название</th>
+                <th>Описание</th>
+                <th>Ссылка</th>
+                <th style="width:120px;">Действия</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for it in items %}
+              <tr>
+                <td>{{ it.id }}</td>
+                <td>{{ it.name }}</td>
+                <td>{{ it.description }}</td>
+                <td>{% if it.url %}<a href="{{ it.url }}" target="_blank" rel="noopener">Открыть</a>{% endif %}</td>
+                <td>
+                  <form method="post" action="{{ url_for('admin_delete_organ', item_id=it.id) }}" onsubmit="return confirm('Удалить запись?');">
+                    <button class="btn btn--danger" type="submit">Удалить</button>
+                  </form>
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+        {% else %}
+          <p style="color:#666;">Пока нет записей.</p>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</body>
+</html>
+
+

@@ -1,0 +1,68 @@
+{% extends 'layout.html' %}
+{% block title %}Интернет‑приёмная{% endblock %}
+
+{% block content %}
+  <style>
+    .ir-wrap { max-width: 820px; margin: 0 auto; display: grid; gap: 18px; }
+    .ir-header { background: linear-gradient(135deg,#667eea 0%, #764ba2 100%); color:#fff; padding: 20px; border-radius: 16px; box-shadow: 0 8px 28px rgba(102,126,234,.28); }
+    .ir-header h1 { margin: 0; font-size: 26px; font-weight: 800; }
+    .ir-card { background:#fff; border:1px solid #e6ecff; border-radius:16px; box-shadow:0 4px 18px rgba(0,0,0,.08); padding:20px; }
+    .grid { display:grid; gap: 14px; }
+    .grid-2 { grid-template-columns: 1fr 1fr; }
+    .field { display:grid; gap:6px; }
+    .label { font-size:14px; color:#2b3a5a; font-weight:700; }
+    .input, .textarea { width:100%; padding:12px 14px; border:1.5px solid #cfe0ff; border-radius:10px; background:#fbfdff; font:inherit; }
+    .textarea { min-height: 110px; resize: vertical; }
+    .req { color:#b00020; }
+    .actions { display:flex; gap:10px; }
+    @media (max-width: 720px) { .grid-2 { grid-template-columns: 1fr; } }
+  </style>
+
+  <div class="ir-wrap">
+    <div class="ir-header">
+      <h1>Интернет‑приёмная</h1>
+    </div>
+
+    <div class="ir-card">
+      <form class="grid" method="post" action="/internet-reception" enctype="multipart/form-data">
+        <div class="field">
+          <label class="label" for="fio">ФИО вашего персонажа <span class="req" aria-hidden="true">*</span></label>
+          <input class="input" id="fio" name="fio" type="text" required>
+        </div>
+
+        <div class="field">
+          <label class="label" for="nick_ds">Ваш ник в ДС <span class="req" aria-hidden="true">*</span></label>
+          <input class="input" id="nick_ds" name="nick_ds" type="text" placeholder="@username" required>
+        </div>
+
+        <div class="grid grid-2">
+          <div class="field">
+            <label class="label" for="violator_ds">Ник нарушителя в ДС (если имеется)</label>
+            <input class="input" id="violator_ds" name="violator_ds" type="text" placeholder="@violator">
+          </div>
+          <div class="field">
+            <label class="label" for="violator_roblox">Ник нарушителя в Roblox <span class="req" aria-hidden="true">*</span></label>
+            <input class="input" id="violator_roblox" name="violator_roblox" type="text" required>
+          </div>
+        </div>
+
+        <div class="field">
+          <label class="label" for="what_happened">Что было нарушено? <span class="req" aria-hidden="true">*</span></label>
+          <textarea class="textarea" id="what_happened" name="what_happened" rows="5" required></textarea>
+        </div>
+
+        <div class="field">
+          <label class="label" for="evidence">Приложить фото (необязательно)</label>
+          <input class="input" id="evidence" name="image" type="file" accept="image/*">
+        </div>
+
+        <div class="actions">
+          <button class="btn btn--primary" type="submit">Отправить</button>
+          <a class="btn" href="/">На главную</a>
+        </div>
+      </form>
+    </div>
+  </div>
+{% endblock %}
+
+
