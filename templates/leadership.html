@@ -1,0 +1,105 @@
+{% extends 'layout.html' %}
+{% block title %}Руководство{% endblock %}
+{% block content %}
+  <style>
+    .page-wrap { max-width: 1200px; margin: 0 auto; padding: 20px; }
+    .page-header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 30px; border-radius: 16px; margin-bottom: 30px; text-align: center; }
+    .page-header h1 { font-size: 32px; font-weight: 800; margin-bottom: 10px; }
+    .page-header p { font-size: 18px; opacity: 0.9; }
+    .content-section { background: white; border-radius: 12px; padding: 30px; margin-bottom: 20px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); }
+    .content-section h2 { color: #2d3748; margin-bottom: 20px; font-size: 24px; }
+    .leadership-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); gap: 30px; margin-top: 20px; }
+    .leader-card { background: #f7fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 25px; text-align: center; }
+    .leader-photo { width: 150px; height: 200px; background: #e2e8f0; border-radius: 8px; margin: 0 auto 20px; display: flex; align-items: center; justify-content: center; color: #718096; font-size: 14px; }
+    .leader-name { font-size: 20px; font-weight: 700; color: #2d3748; margin-bottom: 10px; }
+    .leader-position { font-size: 16px; color: #667eea; margin-bottom: 15px; font-weight: 600; }
+    .leader-info { color: #4a5568; line-height: 1.6; text-align: left; }
+    .info-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; margin-top: 20px; }
+    .info-card { background: #f7fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 20px; }
+    .info-card h3 { color: #2d3748; margin-bottom: 10px; }
+    .info-card p { color: #4a5568; line-height: 1.6; }
+  </style>
+
+  <div class="page-wrap">
+    <div class="page-header">
+      <h1>Руководство</h1>
+      <p>Сведения о трудовой деятельности руководителей</p>
+    </div>
+
+    <div class="content-section">
+      <h2>Руководство Генеральной прокуратуры Российской Федерации</h2>
+      <div class="leadership-grid">
+        {% for leader in leaders %}
+        <div class="leader-card">
+          <div class="leader-photo">
+            {% if leader.photo %}
+              <img src="/static/{{ leader.photo }}" alt="Фото {{ leader.name }}" style="width: 100%; height: 100%; object-fit: cover; border-radius: 8px;">
+            {% else %}
+              Фото
+            {% endif %}
+          </div>
+          <div class="leader-name">{{ leader.name or 'Не указано' }}</div>
+          <div class="leader-position">{{ leader.date or 'Не указано' }}</div>
+          <div class="leader-info">
+            <p>{{ leader.message or 'Информация не указана' }}</p>
+          </div>
+        </div>
+        {% endfor %}
+        
+        {% if not leaders %}
+        <div class="leader-card">
+          <div class="leader-photo">Фото</div>
+          <div class="leader-name">Краснов Игорь Викторович</div>
+          <div class="leader-position">Генеральный прокурор Российской Федерации</div>
+          <div class="leader-info">
+            <p><strong>Дата назначения:</strong> 22 января 2020 года</p>
+            <p><strong>Образование:</strong> Московский государственный университет имени М.В. Ломоносова, юридический факультет</p>
+            <p><strong>Опыт работы:</strong> Более 30 лет в органах прокуратуры</p>
+            <p><strong>Награды:</strong> Орден "За заслуги перед Отечеством" IV степени</p>
+          </div>
+        </div>
+        {% endif %}
+      </div>
+    </div>
+
+    <div class="content-section">
+      <h2>Структура руководства</h2>
+      <div class="info-grid">
+        <div class="info-card">
+          <h3>Коллегия Генпрокуратуры</h3>
+          <p>Коллегиальный орган, в состав которого входят Генеральный прокурор, его заместители, начальники управлений и другие руководящие работники.</p>
+        </div>
+        <div class="info-card">
+          <h3>Управления и отделы</h3>
+          <p>Функциональные подразделения, осуществляющие специализированные виды прокурорского надзора и уголовного преследования.</p>
+        </div>
+        <div class="info-card">
+          <h3>Территориальные органы</h3>
+          <p>Прокуратуры субъектов Российской Федерации, специализированные прокуратуры, прокуратуры городов и районов.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="content-section">
+      <h2>Документы о трудовой деятельности</h2>
+      <ul style="list-style: none; padding: 0;">
+        <li style="margin-bottom: 10px; padding: 15px; background: #f7fafc; border-radius: 6px; border-left: 4px solid #667eea;">
+          <strong>Сведения о доходах, расходах, имуществе и обязательствах имущественного характера</strong><br>
+          <span style="color: #718096;">Ежегодные декларации руководителей прокуратуры</span>
+        </li>
+        <li style="margin-bottom: 10px; padding: 15px; background: #f7fafc; border-radius: 6px; border-left: 4px solid #667eea;">
+          <strong>Сведения о трудовой деятельности</strong><br>
+          <span style="color: #718096;">Трудовая книжка, приказы о назначении, переводе</span>
+        </li>
+        <li style="margin-bottom: 10px; padding: 15px; background: #f7fafc; border-radius: 6px; border-left: 4px solid #667eea;">
+          <strong>Образовательные документы</strong><br>
+          <span style="color: #718096;">Дипломы, аттестаты, удостоверения о повышении квалификации</span>
+        </li>
+        <li style="margin-bottom: 10px; padding: 15px; background: #f7fafc; border-radius: 6px; border-left: 4px solid #667eea;">
+          <strong>Наградные документы</strong><br>
+          <span style="color: #718096;">Грамоты, благодарности, государственные награды</span>
+        </li>
+      </ul>
+    </div>
+  </div>
+{% endblock %}

@@ -265,35 +265,35 @@
   <section class="features" aria-label="Сервисы и разделы">
     <div class="features__inner">
       <div class="features__grid">
-        <a class="feature" href="#">
+        <a class="feature" href="/erknm">
           <div class="feature__icon">🔎</div>
           <div>
             <h3 class="feature__title">ЕРКНМ/ЕРП</h3>
             <p class="feature__desc">Поиск КНМ/Сводный план</p>
           </div>
         </a>
-        <a class="feature" href="#">
+        <a class="feature" href="/anticorruption">
           <div class="feature__icon">🛡️</div>
           <div>
             <h3 class="feature__title">Противодействие коррупции</h3>
             <p class="feature__desc">Информация для граждан</p>
           </div>
         </a>
-        <a class="feature" href="#">
+        <a class="feature" href="/leadership">
           <div class="feature__icon">👤</div>
           <div>
             <h3 class="feature__title">Руководство</h3>
             <p class="feature__desc">Сведения о трудовой деятельности руководителей</p>
           </div>
         </a>
-        <a class="feature" href="#">
+        <a class="feature" href="/hotline">
           <div class="feature__icon">📞</div>
           <div>
             <h3 class="feature__title">Прямая линия для предпринимателей</h3>
             <p class="feature__desc">Канал связи c Генеральным прокурором</p>
           </div>
         </a>
-        <a class="feature" href="#">
+        <a class="feature" href="/organs">
           <div class="feature__icon">🏛️</div>
           <div>
             <h3 class="feature__title">Структура</h3>
@@ -361,9 +361,22 @@
     </section>
     <section class="feed" aria-label="Лента новостей">
       <div class="feed__tabs">
-        <a href="#" class="feed__tab" aria-current="true">Генеральная прокуратура</a>
-        <a href="#" class="feed__tab">Поиск по новостям</a>
+        <a href="{{ url_for('index', tab='feed') }}" class="feed__tab" aria-current="{{ 'true' if tab != 'search' else 'false' }}">Генеральная прокуратура</a>
+        <a href="{{ url_for('index', tab='search') }}" class="feed__tab" aria-current="{{ 'true' if tab == 'search' else 'false' }}">Поиск по новостям</a>
       </div>
+
+      {% if tab == 'search' %}
+      <form method="get" action="{{ url_for('index') }}" style="display:grid; grid-template-columns: 1fr auto; gap: 10px; margin: 12px 0;">
+        <input type="hidden" name="tab" value="search">
+        <input type="text" name="q" value="{{ q or '' }}" placeholder="Введите запрос (заголовок или описание)" style="padding: 10px 12px; border:1px solid #d1d5db; border-radius: 8px;">
+        <button type="submit" class="feed__all" style="border-radius:8px;">Найти</button>
+      </form>
+
+      {% if not feed_groups %}
+        <div style="color:#718096; padding: 10px 0;">Ничего не найдено.</div>
+      {% endif %}
+      {% endif %}
+
       {% for date, items in feed_groups %}
         <div class="feed__group">
           <h3 class="feed__date">{{ date | replace('-', ' ') }}</h3>
@@ -378,6 +391,8 @@
           {% endfor %}
         </div>
       {% endfor %}
+
+      {% if tab != 'search' %}
       <div class="feed__controls">
         <a class="feed__all" href="#">Все новости</a>
         <div class="feed__arrows">
@@ -385,6 +400,7 @@
           <a class="feed__arrow" aria-label="Вперед" href="{{ url_for('index', page=page, feed_page=(feed_page + 1 if feed_page < feed_pages else 1)) }}">▶</a>
         </div>
       </div>
+      {% endif %}
     </section>
   </main>
 

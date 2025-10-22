@@ -330,6 +330,175 @@
       border-bottom: none;
     }
     
+    /* Flash messages */
+    .flash-messages {
+      margin-bottom: 20px;
+    }
+    
+    .flash {
+      padding: 12px 16px;
+      border-radius: 8px;
+      margin-bottom: 8px;
+      font-weight: 500;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    
+    .flash-success {
+      background: #d1fae5;
+      color: #065f46;
+      border: 1px solid #a7f3d0;
+    }
+    
+    .flash-error {
+      background: #fee2e2;
+      color: #991b1b;
+      border: 1px solid #fca5a5;
+    }
+    
+    .flash-info {
+      background: #dbeafe;
+      color: #1e40af;
+      border: 1px solid #93c5fd;
+    }
+
+    /* Notifications */
+    .notifications-bell {
+      position: relative;
+      cursor: pointer;
+      padding: 8px;
+      border-radius: 8px;
+      transition: all 0.3s ease;
+      margin-right: 10px;
+    }
+    
+    .notifications-bell:hover {
+      background: rgba(255,255,255,0.1);
+    }
+    
+    .bell-icon {
+      font-size: 20px;
+      display: block;
+    }
+    
+    .notification-count {
+      position: absolute;
+      top: 0;
+      right: 0;
+      background: #ef4444;
+      color: white;
+      border-radius: 50%;
+      width: 20px;
+      height: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      font-weight: bold;
+      transform: translate(50%, -50%);
+    }
+    
+    .notification-count.hidden {
+      display: none;
+    }
+    
+    /* Notification Modal */
+    .notification-modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0,0,0,0.5);
+      z-index: 1000;
+    }
+    
+    .notification-modal.show {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    
+    .notification-content {
+      background: white;
+      border-radius: 12px;
+      padding: 20px;
+      max-width: 500px;
+      width: 90%;
+      max-height: 80vh;
+      overflow-y: auto;
+    }
+    
+    .notification-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+      border-bottom: 1px solid #e2e8f0;
+      padding-bottom: 10px;
+    }
+    
+    .notification-item {
+      padding: 12px;
+      border: 1px solid #e2e8f0;
+      border-radius: 8px;
+      margin-bottom: 10px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    
+    .notification-item:hover {
+      background: #f8fafc;
+      border-color: #667eea;
+    }
+    
+    .notification-item.unread {
+      background: #f0f9ff;
+      border-color: #3b82f6;
+    }
+    
+    .notification-title {
+      font-weight: 600;
+      color: #2d3748;
+      margin-bottom: 4px;
+    }
+    
+    .notification-message {
+      color: #4a5568;
+      font-size: 14px;
+      margin-bottom: 4px;
+    }
+    
+    .notification-time {
+      color: #718096;
+      font-size: 12px;
+    }
+    
+    .notification-type {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 12px;
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      margin-bottom: 4px;
+    }
+    
+    .notification-type.complaint {
+      background: #fee2e2;
+      color: #991b1b;
+    }
+    
+    .notification-type.job_application {
+      background: #dbeafe;
+      color: #1e40af;
+    }
+    
+    .notification-type.system {
+      background: #f3f4f6;
+      color: #374151;
+    }
+
     /* Responsive */
     @media (max-width: 768px) {
       .admin-nav {
@@ -377,6 +546,10 @@
     <h2 class="brand__title"><a href="/">Генеральная прокуратура<br>Российской Федерации</a></h2>
     <div class="brand__spacer"></div>
     <div class="brand__actions">
+      <div class="notifications-bell" id="notificationsBell">
+        <span class="bell-icon">🔔</span>
+        <span class="notification-count" id="notificationCount">{{ unread_count or 0 }}</span>
+      </div>
       <div class="account-info">
         <div class="account-info__name">Администратор</div>
         <div class="account-info__role">Системный администратор</div>
@@ -400,29 +573,162 @@
       <a href="/admin/contacts" class="btn">Контакты</a>
     </nav>
     
+    <div class="flash-messages">
+      {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+          {% for category, message in messages %}
+            <div class="flash flash-{{ category }}">{{ message }}</div>
+          {% endfor %}
+        {% endif %}
+      {% endwith %}
+    </div>
+    
     <div class="admin-section">
-      <h2>Добавить/изменить лидера</h2>
-      <form method="post" action="/admin/leader/add" class="admin-form">
+      <h2>Добавить нового лидера</h2>
+      <form method="post" action="/admin/leader/add" class="admin-form" enctype="multipart/form-data">
         <div class="form-group">
           <label>Должность</label>
-          <input type="text" name="position" placeholder="Должность" required>
+          <input type="text" name="date" placeholder="Должность" required>
         </div>
         <div class="form-group">
           <label>ФИО лидера</label>
-          <input type="text" name="name" placeholder="ФИО лидера">
+          <input type="text" name="name" placeholder="ФИО лидера" required>
         </div>
         <div class="form-group">
-          <label>Звание лидера </label>
-          <input type="text" name="name" placeholder="Звание лидера">
+          <label>Биография лидера</label>
+          <textarea name="message" placeholder="Биография лидера" rows="4" style="padding: 12px 16px; border: 2px solid #e2e8f0; border-radius: 8px; font-size: 14px; transition: all 0.3s ease; background: white; resize: vertical;" required></textarea>
         </div>
+        
         <div class="form-group">
-          <label>биография лидера </label>
-          <input type="text" name="name" placeholder="Биография лидера">
+          <label>Фото лидера</label>
+          <input type="file" name="photo" accept="image/*" style="padding: 12px 16px; border: 2px solid #e2e8f0; border-radius: 8px; font-size: 14px; transition: all 0.3s ease; background: white;">
         </div>
 
-        <button type="submit" style="grid-column: span 2;">Сохранить</button>
+        <button type="submit" style="grid-column: span 2;">Добавить лидера</button>
       </form>
     </div>
+    
+    <div class="admin-section">
+      <h2>Список лидеров</h2>
+      <table class="admin-table">
+        <thead>
+          <tr>
+            <th>Фото</th>
+            <th>Должность</th>
+            <th>ФИО</th>
+            <th>Биография</th>
+            <th>Действия</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for leader in leaders %}
+          <tr>
+            <td>
+              {% if leader.photo %}
+                <img src="/static/{{ leader.photo }}" alt="Фото лидера" style="width: 50px; height: 50px; object-fit: cover; border-radius: 4px;">
+              {% else %}
+                <div style="width: 50px; height: 50px; background: #e2e8f0; border-radius: 4px; display: flex; align-items: center; justify-content: center; color: #718096; font-size: 12px;">Нет фото</div>
+              {% endif %}
+            </td>
+            <td>{{ leader.date }}</td>
+            <td>{{ leader.name }}</td>
+            <td>{{ leader.message[:100] }}{% if leader.message|length > 100 %}...{% endif %}</td>
+            <td>
+              <div style="display: flex; gap: 8px;">
+                <a href="/admin/leader/edit/{{ leader.id }}" class="btn" style="background: #3b82f6; color: white; padding: 6px 12px; border-radius: 4px; text-decoration: none; font-size: 12px;">Редактировать</a>
+                <form method="post" action="/admin/leader/delete/{{ leader.id }}" style="display: inline;" onsubmit="return confirm('Вы уверены, что хотите удалить лидера?')">
+                  <button type="submit" style="background: #ef4444; color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-size: 12px;">Удалить</button>
+                </form>
+              </div>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
   </div>
+
+  <!-- Notification Modal -->
+  <div class="notification-modal" id="notificationModal">
+    <div class="notification-content">
+      <div class="notification-header">
+        <h3>Уведомления</h3>
+        <button onclick="closeNotificationModal()" style="background: none; border: none; font-size: 20px; cursor: pointer;">&times;</button>
+      </div>
+      <div id="notificationsList">
+        {% for notification in notifications %}
+        <div class="notification-item {% if not notification.is_read %}unread{% endif %}" onclick="markAsRead({{ notification.id }})">
+          <div class="notification-type {{ notification.type }}">{{ notification.type }}</div>
+          <div class="notification-title">{{ notification.title }}</div>
+          <div class="notification-message">{{ notification.message }}</div>
+          <div class="notification-time">{{ notification.created_at }}</div>
+        </div>
+        {% endfor %}
+        {% if not notifications %}
+        <div style="text-align: center; color: #718096; padding: 20px;">
+          Нет уведомлений
+        </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Notification functionality
+    function openNotificationModal() {
+      document.getElementById('notificationModal').classList.add('show');
+    }
+    
+    function closeNotificationModal() {
+      document.getElementById('notificationModal').classList.remove('show');
+    }
+    
+    function markAsRead(notificationId) {
+      fetch(`/notifications/mark_read/${notificationId}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        }
+      })
+      .then(response => response.json())
+      .then(data => {
+        if (data.success) {
+          // Update UI
+          const notificationItem = document.querySelector(`[onclick="markAsRead(${notificationId})"]`);
+          if (notificationItem) {
+            notificationItem.classList.remove('unread');
+          }
+          updateNotificationCount();
+        }
+      });
+    }
+    
+    function updateNotificationCount() {
+      fetch('/notifications/get_unread_count')
+        .then(response => response.json())
+        .then(data => {
+          const countElement = document.getElementById('notificationCount');
+          if (data.count > 0) {
+            countElement.textContent = data.count;
+            countElement.classList.remove('hidden');
+          } else {
+            countElement.classList.add('hidden');
+          }
+        });
+    }
+    
+    // Event listeners
+    document.getElementById('notificationsBell').addEventListener('click', openNotificationModal);
+    
+    // Close modal when clicking outside
+    document.getElementById('notificationModal').addEventListener('click', function(e) {
+      if (e.target === this) {
+        closeNotificationModal();
+      }
+    });
+    
+    // Update notification count every 30 seconds
+    setInterval(updateNotificationCount, 30000);
+  </script>
 </body>
 </html>

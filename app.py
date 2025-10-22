@@ -1,4 +1,4 @@
-from flask import Flask, render_template, send_from_directory, redirect, url_for, request, session
+from flask import Flask, render_template, send_from_directory, redirect, url_for, request, session, flash, jsonify
 import sqlite3
 from pathlib import Path
 import os
@@ -96,7 +96,31 @@ def init_db():
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             date TEXT,
             name TEXT,
-            message TEXT NOT NULL
+            message TEXT NOT NULL,
+            photo TEXT
+        )
+        """
+    )
+    
+    # Add photo column if it doesn't exist (for existing databases)
+    try:
+        cur.execute("ALTER TABLE leaders ADD COLUMN photo TEXT")
+    except:
+        pass  # Column already exists
+    
+    # Create notifications table
+    cur.execute(
+        """
+        CREATE TABLE IF NOT EXISTS notifications (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            title TEXT NOT NULL,
+            message TEXT NOT NULL,
+            type TEXT NOT NULL,
+            recipient_role TEXT NOT NULL,
+            recipient_id INTEGER,
+            is_read BOOLEAN DEFAULT FALSE,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            data TEXT
         )
         """
     )
@@ -162,6 +186,15 @@ def init_db():
         )
         """
     )
+    # Таблица настроек приложения (key-value), редактируется админом
+    cur.execute(
+        """
+        CREATE TABLE IF NOT EXISTS app_settings (
+            key TEXT PRIMARY KEY,
+            value TEXT
+        )
+        """
+    )
     # Миграция: добавляем колонку description в documents, если её нет
     cur.execute("PRAGMA table_info(documents)")
     cols = [r[1] for r in cur.fetchall()]
@@ -211,6 +244,8 @@ def group_news_by_date(items):
 @app.route('/')
 def index():
     page = request.args.get('page', default=1, type=int)
+    q = request.args.get('q', default='', type=str).strip()
+    tab = request.args.get('tab', default='feed', type=str)
     # slider news from DB
     conn = get_db()
     cur = conn.cursor()
@@ -227,21 +262,39 @@ def index():
         row = cur.fetchone()
         if row:
             current_news = { 'date': row['date'], 'title': row['title'], 'description': row['description'], 'image': row['image'] }
-    # Пагинация ленты (по датам не режем; просто первые N записей)
-    per_page = 7
-    cur.execute('SELECT COUNT(*) FROM feed_news')
-    feed_total = cur.fetchone()[0]
-    feed_page = request.args.get('feed_page', default=1, type=int)
-    if feed_page < 1:
+    # Если активен поиск, не пагинируем ленту, а фильтруем по запросу
+    search_results = []
+    feed_grouped = []
+    if q:
+        like = f"%{q}%"
+        cur.execute('''
+            SELECT date, time, title, description, url
+            FROM feed_news
+            WHERE title LIKE ? OR description LIKE ?
+            ORDER BY id DESC
+            LIMIT 100
+        ''', (like, like))
+        search_results = [dict(r) for r in cur.fetchall()]
+        # сгруппуем найденное по дате для единообразного отображения
+        feed_grouped = group_news_by_date(search_results)
         feed_page = 1
-    feed_pages = max(1, (feed_total + per_page - 1) // per_page)
-    if feed_page > feed_pages:
-        feed_page = feed_pages
-    start = (feed_page - 1) * per_page
-    cur.execute('SELECT date, time, title, description, url FROM feed_news ORDER BY id DESC LIMIT ? OFFSET ?', (per_page, start))
-    rows = [dict(r) for r in cur.fetchall()]
+        feed_pages = 1
+    else:
+        # Пагинация ленты (по датам не режем; просто первые N записей)
+        per_page = 7
+        cur.execute('SELECT COUNT(*) FROM feed_news')
+        feed_total = cur.fetchone()[0]
+        feed_page = request.args.get('feed_page', default=1, type=int)
+        if feed_page < 1:
+            feed_page = 1
+        feed_pages = max(1, (feed_total + per_page - 1) // per_page)
+        if feed_page > feed_pages:
+            feed_page = feed_pages
+        start = (feed_page - 1) * per_page
+        cur.execute('SELECT date, time, title, description, url FROM feed_news ORDER BY id DESC LIMIT ? OFFSET ?', (per_page, start))
+        rows = [dict(r) for r in cur.fetchall()]
+        feed_grouped = group_news_by_date(rows)
     conn.close()
-    feed_grouped = group_news_by_date(rows)
 
     return render_template(
         'base.html',
@@ -251,6 +304,8 @@ def index():
         feed_groups=feed_grouped,
         feed_page=feed_page,
         feed_pages=feed_pages,
+        q=q,
+        tab=('search' if q or tab == 'search' else 'feed'),
     )
 
 
@@ -335,13 +390,24 @@ def jobs():
         )
         conn.commit()
         conn.close()
+        
+        # Создать уведомление для админов о новой заявке
+        create_notification(
+            title="Новая заявка на работу",
+            message=f"Поступила заявка от {request.form.get('char_name', 'Неизвестно')}",
+            notification_type="job_application",
+            recipient_role="admin"
+        )
+        
         return render_template('submitted.html', title='Заявка отправлена', message='Спасибо! Ваша заявка принята.')
     return render_template('jobs.html')
 
 
 # ------------------ Admin ------------------
 def is_admin() -> bool:
-    return bool(session.get('is_admin'))
+    is_admin_status = bool(session.get('is_admin'))
+    print(f"DEBUG: is_admin() = {is_admin_status}, session = {dict(session)}")
+    return is_admin_status
 
 
 @app.route('/admin/login', methods=['GET', 'POST'])
@@ -369,6 +435,66 @@ def admin_home():
     return redirect(url_for('admin_important'))
 
 
+def create_notification(title, message, notification_type, recipient_role, recipient_id=None, data=None):
+    """Создать новое уведомление"""
+    conn = get_db()
+    cur = conn.cursor()
+    cur.execute('''INSERT INTO notifications (title, message, type, recipient_role, recipient_id, data) 
+                   VALUES (?, ?, ?, ?, ?, ?)''', 
+                (title, message, notification_type, recipient_role, recipient_id, data))
+    conn.commit()
+    conn.close()
+
+def get_notifications(recipient_role, recipient_id=None, limit=50):
+    """Получить уведомления для пользователя"""
+    conn = get_db()
+    cur = conn.cursor()
+    
+    if recipient_id:
+        cur.execute('''SELECT id, title, message, type, is_read, created_at, data 
+                       FROM notifications 
+                       WHERE recipient_role = ? AND (recipient_id = ? OR recipient_id IS NULL)
+                       ORDER BY created_at DESC LIMIT ?''', 
+                    (recipient_role, recipient_id, limit))
+    else:
+        cur.execute('''SELECT id, title, message, type, is_read, created_at, data 
+                       FROM notifications 
+                       WHERE recipient_role = ? AND recipient_id IS NULL
+                       ORDER BY created_at DESC LIMIT ?''', 
+                    (recipient_role, limit))
+    
+    notifications = [dict(r) for r in cur.fetchall()]
+    conn.close()
+    return notifications
+
+def mark_notification_read(notification_id):
+    """Отметить уведомление как прочитанное"""
+    conn = get_db()
+    cur = conn.cursor()
+    cur.execute('UPDATE notifications SET is_read = TRUE WHERE id = ?', (notification_id,))
+    conn.commit()
+    conn.close()
+
+def get_unread_count(recipient_role, recipient_id=None):
+    """Получить количество непрочитанных уведомлений"""
+    conn = get_db()
+    cur = conn.cursor()
+    
+    if recipient_id:
+        cur.execute('''SELECT COUNT(*) FROM notifications 
+                       WHERE recipient_role = ? AND (recipient_id = ? OR recipient_id IS NULL) 
+                       AND is_read = FALSE''', 
+                    (recipient_role, recipient_id))
+    else:
+        cur.execute('''SELECT COUNT(*) FROM notifications 
+                       WHERE recipient_role = ? AND recipient_id IS NULL 
+                       AND is_read = FALSE''', 
+                    (recipient_role,))
+    
+    count = cur.fetchone()[0]
+    conn.close()
+    return count
+
 def admin_fetch_lists():
     conn = get_db()
     cur = conn.cursor()
@@ -376,11 +502,11 @@ def admin_fetch_lists():
     slider = [dict(r) for r in cur.fetchall()]
     cur.execute('SELECT date, time, title, description, url FROM feed_news ORDER BY id DESC LIMIT 50')
     feed = [dict(r) for r in cur.fetchall()]
-    cur.execute('SELECT name, position, contact FROM employees ORDER BY id DESC LIMIT 200')
+    cur.execute('SELECT id, name, position, contact FROM employees ORDER BY id DESC LIMIT 200')
     employees = [dict(r) for r in cur.fetchall()]
     cur.execute('SELECT date, title, description, url FROM documents ORDER BY id DESC LIMIT 200')
     documents = [dict(r) for r in cur.fetchall()]
-    cur.execute('SELECT date, name, message FROM leaders ORDER BY id DESC LIMIT 50')
+    cur.execute('SELECT id, date, name, message, photo FROM leaders ORDER BY id DESC LIMIT 50')
     leaders = [dict(r) for r in cur.fetchall()]
     cur.execute('SELECT id, created_at, char_name, char_age, char_nationality, char_job, desired_login, status FROM job_applications ORDER BY id DESC LIMIT 200')
     job_apps = [dict(r) for r in cur.fetchall()]
@@ -388,6 +514,13 @@ def admin_fetch_lists():
     complaints = [dict(r) for r in cur.fetchall()]
     conn.close()
     return slider, feed, employees, documents, leaders, job_apps, complaints
+
+def admin_fetch_with_notifications():
+    """Получить данные для админки с уведомлениями"""
+    slider, feed, employees, documents, leaders, job_apps, complaints = admin_fetch_lists()
+    notifications = get_notifications('admin')
+    unread_count = get_unread_count('admin')
+    return slider, feed, employees, documents, leaders, job_apps, complaints, notifications, unread_count
 
 
 @app.route('/admin/organs')
@@ -472,8 +605,8 @@ def admin_docs():
 def admin_leader():
     if not is_admin():
         return redirect(url_for('admin_login'))
-    slider, feed, employees, documents, leaders, job_apps, complaints = admin_fetch_lists()
-    return render_template('admin/leader.html', leaders=leaders)
+    slider, feed, employees, documents, leaders, job_apps, complaints, notifications, unread_count = admin_fetch_with_notifications()
+    return render_template('admin/leader.html', leaders=leaders, notifications=notifications, unread_count=unread_count)
 
 
 @app.route('/admin/complaints')
@@ -553,6 +686,65 @@ def admin_add_employee():
     ))
     conn.commit()
     conn.close()
+    flash('Сотрудник добавлен', 'success')
+    return redirect(url_for('admin_employees'))
+
+
+@app.route('/admin/employees/edit/<int:emp_id>', methods=['GET', 'POST'])
+def admin_edit_employee(emp_id: int):
+    if not is_admin():
+        flash('Необходимо войти как администратор', 'error')
+        return redirect(url_for('login'))
+    
+    conn = get_db()
+    cur = conn.cursor()
+    
+    if request.method == 'POST':
+        name = request.form.get('name', '').strip()
+        position = request.form.get('position', '').strip()
+        contact = request.form.get('contact', '').strip()
+        
+        cur.execute('UPDATE employees SET name=?, position=?, contact=? WHERE id=?', 
+                   (name, position, contact, emp_id))
+        conn.commit()
+        conn.close()
+        flash('Сотрудник обновлен', 'success')
+        return redirect(url_for('admin_employees'))
+    
+    # GET request - show edit form
+    cur.execute('SELECT name, position, contact FROM employees WHERE id=?', (emp_id,))
+    employee = cur.fetchone()
+    conn.close()
+    
+    if not employee:
+        flash('Сотрудник не найден', 'error')
+        return redirect(url_for('admin_employees'))
+    
+    return render_template('admin/edit_employee.html', employee={'id': emp_id, 'name': employee[0], 'position': employee[1], 'contact': employee[2]})
+
+
+@app.route('/admin/employees/delete/<int:emp_id>', methods=['POST'])
+def admin_delete_employee(emp_id: int):
+    if not is_admin():
+        flash('Необходимо войти как администратор', 'error')
+        return redirect(url_for('login'))
+    
+    conn = get_db()
+    cur = conn.cursor()
+    
+    # Get employee info before deletion
+    cur.execute('SELECT name FROM employees WHERE id=?', (emp_id,))
+    employee = cur.fetchone()
+    
+    if employee:
+        # Delete employee
+        cur.execute('DELETE FROM employees WHERE id=?', (emp_id,))
+        conn.commit()
+        flash(f'Сотрудник {employee[0]} удален', 'success')
+    else:
+        flash('Сотрудник не найден', 'error')
+    
+    conn.close()
     return redirect(url_for('admin_employees'))
 
 
@@ -573,13 +765,135 @@ def admin_add_document():
 def admin_add_leader():
     if not is_admin():
         return redirect(url_for('admin_login'))
+    
     conn = get_db()
-    conn.execute('INSERT INTO leaders(date, name, message) VALUES(?,?,?)', (
-        request.form.get('date'), request.form.get('name','').strip(), request.form.get('message','').strip()
+    cur = conn.cursor()
+    
+    # Handle photo upload
+    photo_filename = None
+    if 'photo' in request.files:
+        photo = request.files['photo']
+        if photo and photo.filename:
+            # Generate secure filename
+            import os
+            import uuid
+            from werkzeug.utils import secure_filename
+            
+            filename = secure_filename(photo.filename)
+            if filename:
+                # Create unique filename
+                file_ext = os.path.splitext(filename)[1]
+                unique_filename = f"{uuid.uuid4()}{file_ext}"
+                
+                # Save file
+                photo_path = os.path.join('static', 'uploads', 'leaders')
+                os.makedirs(photo_path, exist_ok=True)
+                photo.save(os.path.join(photo_path, unique_filename))
+                photo_filename = f"uploads/leaders/{unique_filename}"
+    
+    cur.execute('INSERT INTO leaders(date, name, message, photo) VALUES(?,?,?,?)', (
+        request.form.get('date'), 
+        request.form.get('name','').strip(), 
+        request.form.get('message','').strip(),
+        photo_filename
     ))
     conn.commit()
     conn.close()
+    flash('Лидер добавлен', 'success')
     return redirect(url_for('admin_leader'))
+
+
+@app.route('/admin/leader/edit/<int:leader_id>', methods=['GET', 'POST'])
+def admin_edit_leader(leader_id: int):
+    if not is_admin():
+        flash('Необходимо войти как администратор', 'error')
+        return redirect(url_for('login'))
+    
+    conn = get_db()
+    cur = conn.cursor()
+    
+    if request.method == 'POST':
+        date = request.form.get('date', '').strip()
+        name = request.form.get('name', '').strip()
+        message = request.form.get('message', '').strip()
+        
+        # Handle photo upload
+        photo_filename = None
+        if 'photo' in request.files:
+            photo = request.files['photo']
+            if photo and photo.filename:
+                # Generate secure filename
+                import os
+                import uuid
+                from werkzeug.utils import secure_filename
+                
+                filename = secure_filename(photo.filename)
+                if filename:
+                    # Create unique filename
+                    file_ext = os.path.splitext(filename)[1]
+                    unique_filename = f"{uuid.uuid4()}{file_ext}"
+                    
+                    # Save file
+                    photo_path = os.path.join('static', 'uploads', 'leaders')
+                    os.makedirs(photo_path, exist_ok=True)
+                    photo.save(os.path.join(photo_path, unique_filename))
+                    photo_filename = f"uploads/leaders/{unique_filename}"
+        
+        # Update leader with or without new photo
+        if photo_filename:
+            cur.execute('UPDATE leaders SET date=?, name=?, message=?, photo=? WHERE id=?', 
+                       (date, name, message, photo_filename, leader_id))
+        else:
+            cur.execute('UPDATE leaders SET date=?, name=?, message=? WHERE id=?', 
+                       (date, name, message, leader_id))
+        
+        conn.commit()
+        conn.close()
+        flash('Лидер обновлен', 'success')
+        return redirect(url_for('admin_leader'))
+    
+    # GET request - show edit form
+    cur.execute('SELECT date, name, message, photo FROM leaders WHERE id=?', (leader_id,))
+    leader = cur.fetchone()
+    conn.close()
+    
+    if not leader:
+        flash('Лидер не найден', 'error')
+        return redirect(url_for('admin_leader'))
+    
+    return render_template('admin/edit_leader.html', leader={'id': leader_id, 'date': leader[0], 'name': leader[1], 'message': leader[2], 'photo': leader[3]})
+
+
+@app.route('/notifications/mark_read/<int:notification_id>', methods=['POST'])
+def mark_notification_read_route(notification_id):
+    """Отметить уведомление как прочитанное"""
+    if not session.get('user_id'):
+        return redirect(url_for('login'))
+    
+    mark_notification_read(notification_id)
+    return jsonify({'success': True})
+
+@app.route('/notifications/get_unread_count')
+def get_unread_count_route():
+    """Получить количество непрочитанных уведомлений"""
+    if not session.get('user_id'):
+        return jsonify({'count': 0})
+    
+    user_role = session.get('user_role')
+    user_id = session.get('user_id')
+    count = get_unread_count(user_role, user_id)
+    return jsonify({'count': count})
+
+@app.route('/notifications/get_all')
+def get_all_notifications_route():
+    """Получить все уведомления пользователя"""
+    if not session.get('user_id'):
+        return redirect(url_for('login'))
+    
+    user_role = session.get('user_role')
+    user_id = session.get('user_id')
+    notifications = get_notifications(user_role, user_id)
+    return jsonify({'notifications': notifications})
 
 
 @app.route('/about')
@@ -623,6 +937,20 @@ def internet_reception():
         )
         conn.commit()
         conn.close()
+        
+        # Создать уведомления для админов и прокуроров
+        create_notification(
+            title="Новая жалоба получена",
+            message=f"Поступила жалоба от {fio}",
+            notification_type="complaint",
+            recipient_role="admin"
+        )
+        create_notification(
+            title="Новая жалоба получена", 
+            message=f"Поступила жалоба от {fio}",
+            notification_type="complaint",
+            recipient_role="prosecutor"
+        )
         return render_template('submitted.html', title='Жалоба отправлена', message='Спасибо! Обращение получено.')
     return render_template('internet-reception.html')
 
@@ -675,6 +1003,112 @@ def contacts():
     items = [dict(r) for r in cur.fetchall()]
     conn.close()
     return render_template('contacts.html', contacts=items)
+
+
+@app.route('/erknm')
+def erknm():
+    conn = get_db()
+    cur = conn.cursor()
+    
+    # Считаем количество сотрудников
+    cur.execute('SELECT COUNT(*) FROM employees')
+    employees_count = cur.fetchone()[0]
+    
+    # Считаем количество жалоб
+    cur.execute('SELECT COUNT(*) FROM complaints')
+    complaints_processed = cur.fetchone()[0]
+    
+    # Считаем количество заявок на работу
+    cur.execute('SELECT COUNT(*) FROM job_applications')
+    job_applications = cur.fetchone()[0]
+    
+    # Считаем количество одобренных заявок
+    cur.execute('SELECT COUNT(*) FROM job_applications WHERE status="approved"')
+    approved_applications = cur.fetchone()[0]
+    
+    # Считаем количество пользователей
+    cur.execute('SELECT COUNT(*) FROM user_accounts')
+    user_accounts = cur.fetchone()[0]
+    
+    # Политиков снято (берем из настроек app_settings)
+    cur.execute('SELECT value FROM app_settings WHERE key=?', ('politicians_removed',))
+    row = cur.fetchone()
+    try:
+        politicians_removed = int(row[0]) if row and row[0] is not None else 0
+    except Exception:
+        politicians_removed = 0
+    
+    conn.close()
+    
+    return render_template('erknm.html', 
+                         employees_count=employees_count,
+                         complaints_processed=complaints_processed,
+                         politicians_removed=politicians_removed,
+                         job_applications=job_applications,
+                         approved_applications=approved_applications,
+                         user_accounts=user_accounts)
+
+
+@app.route('/admin/stats', methods=['GET', 'POST'])
+def admin_stats():
+    if not is_admin():
+        flash('Необходимо войти как администратор', 'error')
+        return redirect(url_for('login'))
+    conn = get_db()
+    cur = conn.cursor()
+    if request.method == 'POST':
+        value = request.form.get('politicians_removed', '0').strip()
+        # upsert настройку
+        cur.execute("INSERT INTO app_settings(key, value) VALUES(?, ?) ON CONFLICT(key) DO UPDATE SET value=excluded.value", (
+            'politicians_removed', value
+        ))
+        conn.commit()
+        conn.close()
+        flash('Статистика обновлена', 'success')
+        return redirect(url_for('admin_stats'))
+    # GET
+    cur.execute('SELECT value FROM app_settings WHERE key=?', ('politicians_removed',))
+    row = cur.fetchone()
+    current_value = row[0] if row and row[0] is not None else '0'
+    conn.close()
+    return render_template('admin/stats.html', politicians_removed=current_value)
+
+
+@app.route('/anticorruption')
+def anticorruption():
+    return render_template('anticorruption.html')
+
+
+@app.route('/leadership')
+def leadership():
+    conn = get_db()
+    cur = conn.cursor()
+    
+    # Get leaders with priority for deputies
+    cur.execute('SELECT date, name, message, photo FROM leaders ORDER BY id DESC')
+    all_leaders = cur.fetchall()
+    
+    # Separate deputies from other leaders
+    deputies = []
+    other_leaders = []
+    
+    for leader in all_leaders:
+        position = leader[0] or ''  # date field contains position
+        if any(keyword in position.lower() for keyword in ['зам', 'заместитель', 'первый зам']):
+            deputies.append(leader)
+        else:
+            other_leaders.append(leader)
+    
+    # Combine: deputies first, then others
+    leaders_data = deputies + other_leaders
+    
+    conn.close()
+    return render_template('leadership.html', leaders=leaders_data)
+
+
+@app.route('/hotline')
+def hotline():
+    return render_template('hotline.html')
 
 
 @app.route('/admin/contacts')
@@ -735,7 +1169,8 @@ def admin_approve_job(app_id: int):
     cur.execute('SELECT id FROM user_accounts WHERE username=?', (desired_login,))
     if cur.fetchone():
         conn.close()
-        return redirect(url_for('admin_jobs'))  # Username already exists
+        flash(f'Ошибка: Логин "{desired_login}" уже существует!', 'error')
+        return redirect(url_for('admin_jobs'))
     
     # Create user account
     try:
@@ -745,16 +1180,20 @@ def admin_approve_job(app_id: int):
         safe_position = (char_job or 'Сотрудник').strip() or 'Сотрудник'
         safe_contact = (nick_ds or '').strip()
         cur.execute('INSERT INTO employees(name, position, contact) VALUES(?,?,?)', (char_name, safe_position, safe_contact))
-    except Exception as e:
+        
+        # Update application status
+        cur.execute('UPDATE job_applications SET status="approved" WHERE id=?', (app_id,))
+        
+        conn.commit()
         conn.close()
+        flash(f'Заявка одобрена! Создан аккаунт для {char_name}', 'success')
         return redirect(url_for('admin_jobs'))
-    
-    # Update application status
-    cur.execute('UPDATE job_applications SET status="approved" WHERE id=?', (app_id,))
-    
-    conn.commit()
-    conn.close()
-    return redirect(url_for('admin_jobs'))
+    except Exception as e:
+        print(f"Error approving job application: {e}")
+        conn.rollback()
+        conn.close()
+        flash(f'Ошибка при одобрении заявки: {str(e)}', 'error')
+        return redirect(url_for('admin_jobs'))
 
 
 @app.route('/admin/jobs/reject/<int:app_id>', methods=['POST'])
@@ -766,7 +1205,86 @@ def admin_reject_job(app_id: int):
     conn.execute('UPDATE job_applications SET status="rejected" WHERE id=?', (app_id,))
     conn.commit()
     conn.close()
+    flash('Заявка отклонена', 'info')
     return redirect(url_for('admin_jobs'))
+
+
+@app.route('/admin/users')
+def admin_users():
+    if not is_admin():
+        return redirect(url_for('admin_login'))
+    
+    conn = get_db()
+    cur = conn.cursor()
+    cur.execute('SELECT id, username, full_name, role, created_at FROM user_accounts ORDER BY created_at DESC')
+    users = cur.fetchall()
+    conn.close()
+    
+    return render_template('admin/users.html', users=users)
+
+
+@app.route('/admin/users/edit/<int:user_id>', methods=['GET', 'POST'])
+def admin_edit_user(user_id: int):
+    if not is_admin():
+        return redirect(url_for('admin_login'))
+    
+    conn = get_db()
+    cur = conn.cursor()
+    
+    if request.method == 'POST':
+        username = request.form.get('username', '').strip()
+        full_name = request.form.get('full_name', '').strip()
+        role = request.form.get('role', 'employee').strip()
+        
+        # Check if username already exists (excluding current user)
+        cur.execute('SELECT id FROM user_accounts WHERE username=? AND id!=?', (username, user_id))
+        if cur.fetchone():
+            conn.close()
+            flash(f'Ошибка: Логин "{username}" уже существует!', 'error')
+            return redirect(url_for('admin_edit_user', user_id=user_id))
+        
+        # Update user
+        cur.execute('UPDATE user_accounts SET username=?, full_name=?, role=? WHERE id=?', 
+                   (username, full_name, role, user_id))
+        conn.commit()
+        conn.close()
+        flash('Пользователь обновлен', 'success')
+        return redirect(url_for('admin_users'))
+    
+    # GET request - show edit form
+    cur.execute('SELECT username, full_name, role FROM user_accounts WHERE id=?', (user_id,))
+    user = cur.fetchone()
+    conn.close()
+    
+    if not user:
+        flash('Пользователь не найден', 'error')
+        return redirect(url_for('admin_users'))
+    
+    return render_template('admin/edit_user.html', user={'id': user_id, 'username': user[0], 'full_name': user[1], 'role': user[2]})
+
+
+@app.route('/admin/users/delete/<int:user_id>', methods=['POST'])
+def admin_delete_user(user_id: int):
+    if not is_admin():
+        return redirect(url_for('admin_login'))
+    
+    conn = get_db()
+    cur = conn.cursor()
+    
+    # Get user info before deletion
+    cur.execute('SELECT username, full_name FROM user_accounts WHERE id=?', (user_id,))
+    user = cur.fetchone()
+    
+    if user:
+        # Delete user
+        cur.execute('DELETE FROM user_accounts WHERE id=?', (user_id,))
+        conn.commit()
+        flash(f'Пользователь {user[1]} ({user[0]}) удален', 'success')
+    else:
+        flash('Пользователь не найден', 'error')
+    
+    conn.close()
+    return redirect(url_for('admin_users'))
 
 
 # ------------------ Prosecutor Panel ------------------
@@ -781,7 +1299,12 @@ def prosecutor_panel():
     cur.execute('SELECT id, created_by, title, description, url, status, created_at FROM documents_drafts ORDER BY id DESC LIMIT 100')
     drafts = [dict(r) for r in cur.fetchall()]
     conn.close()
-    return render_template('prosecutor/panel.html', complaints=complaints, drafts=drafts, proc_name=session.get('proc_name','Прокурор'))
+    
+    # Get notifications for prosecutor
+    notifications = get_notifications('prosecutor')
+    unread_count = get_unread_count('prosecutor')
+    
+    return render_template('prosecutor/panel.html', complaints=complaints, drafts=drafts, proc_name=session.get('proc_name','Прокурор'), notifications=notifications, unread_count=unread_count)
 
 
 @app.route('/prosecutor/claim/<int:cid>', methods=['POST'])

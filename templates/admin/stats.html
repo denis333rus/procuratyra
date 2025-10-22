@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Админ — статистика</title>
+  <style>
+    body { font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; margin:0; color:#111; background:#f8fafc; }
+    .wrap { max-width: 900px; margin: 24px auto; padding: 0 16px; }
+    .card { background:#fff; border:1px solid #e5e7eb; border-radius:12px; box-shadow:0 4px 16px rgba(0,0,0,.06); padding:20px; }
+    h1 { font-size:22px; margin:0 0 16px 0; }
+    .form { display:grid; gap:12px; }
+    label { font-weight:600; color:#374151; font-size:14px; }
+    input[type="number"], input[type="text"] { padding:10px 12px; border:1px solid #cfe0ff; border-radius:8px; background:#fbfdff; font:inherit; }
+    .actions { display:flex; gap:10px; }
+    .btn { background:#3b82f6; color:#fff; border:none; padding:10px 16px; border-radius:8px; font-weight:600; cursor:pointer; }
+    .btn:hover { background:#2563eb; }
+    .back { text-decoration:none; display:inline-block; margin-bottom:12px; color:#1f2937; }
+    .flash { margin: 0 0 12px 0; padding: 12px; border-radius: 8px; font-weight: 600; }
+    .flash-success { background: #d1fae5; color: #065f46; border: 1px solid #a7f3d0; }
+    .flash-error { background: #fee2e2; color: #991b1b; border: 1px solid #fca5a5; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <a class="back" href="/admin/employees">← Назад в админку</a>
+
+    <div class="card">
+      <h1>Настройки статистики</h1>
+
+      {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+          {% for category, message in messages %}
+            <div class="flash flash-{{ category }}">{{ message }}</div>
+          {% endfor %}
+        {% endif %}
+      {% endwith %}
+
+      <form class="form" method="post">
+        <div>
+          <label for="politicians_removed">Политиков снято (число)</label>
+          <input type="number" id="politicians_removed" name="politicians_removed" min="0" value="{{ politicians_removed }}" required>
+        </div>
+        <div class="actions">
+          <button class="btn" type="submit">Сохранить</button>
+          <a class="btn" style="background:#6b7280" href="/erknm">Открыть статистику</a>
+        </div>
+      </form>
+    </div>
+  </div>
+</body>
+</html>

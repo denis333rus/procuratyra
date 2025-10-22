@@ -1,0 +1,67 @@
+{% extends 'layout.html' %}
+{% block title %}Статистика прокуратуры{% endblock %}
+{% block content %}
+  <style>
+    .page-wrap { max-width: 1200px; margin: 0 auto; padding: 20px; }
+    .page-header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 30px; border-radius: 16px; margin-bottom: 30px; text-align: center; }
+    .page-header h1 { font-size: 32px; font-weight: 800; margin-bottom: 10px; }
+    .page-header p { font-size: 18px; opacity: 0.9; }
+    .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; margin: 20px 0; }
+    .stat-card { background: white; border-radius: 12px; padding: 30px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); text-align: center; }
+    .stat-number { font-size: 48px; font-weight: 800; color: #667eea; margin-bottom: 10px; }
+    .stat-label { font-size: 18px; color: #4a5568; margin-bottom: 15px; }
+    .stat-description { font-size: 14px; color: #718096; line-height: 1.5; }
+    .content-section { background: white; border-radius: 12px; padding: 30px; margin-bottom: 20px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); }
+    .content-section h2 { color: #2d3748; margin-bottom: 20px; font-size: 24px; }
+  </style>
+
+  <div class="page-wrap">
+    <div class="page-header">
+      <h1>Статистика прокуратуры</h1>
+      <p>Актуальные данные о деятельности органов прокуратуры</p>
+    </div>
+
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-number">{{ employees_count }}</div>
+        <div class="stat-label">Сотрудников в прокуратуре</div>
+        <div class="stat-description">Общее количество работников органов прокуратуры Российской Федерации</div>
+      </div>
+      
+      <div class="stat-card">
+        <div class="stat-number">{{ complaints_processed }}</div>
+        <div class="stat-label">Жалоб рассмотрено</div>
+        <div class="stat-description">Количество обращений граждан, рассмотренных прокуратурой</div>
+      </div>
+      
+      <div class="stat-card">
+        <div class="stat-number">{{ politicians_removed }}</div>
+        <div class="stat-label">Политиков снято</div>
+        <div class="stat-description">Количество должностных лиц, отстраненных от должности</div>
+      </div>
+    </div>
+
+    <div class="content-section">
+      <h2>Дополнительная статистика</h2>
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-number">{{ job_applications }}</div>
+          <div class="stat-label">Заявок на работу</div>
+          <div class="stat-description">Подано заявлений о приеме на работу в прокуратуру</div>
+        </div>
+        
+        <div class="stat-card">
+          <div class="stat-number">{{ approved_applications }}</div>
+          <div class="stat-label">Заявок одобрено</div>
+          <div class="stat-description">Количество одобренных заявлений о приеме на работу</div>
+        </div>
+        
+        <div class="stat-card">
+          <div class="stat-number">{{ user_accounts }}</div>
+          <div class="stat-label">Пользователей системы</div>
+          <div class="stat-description">Зарегистрированных пользователей в системе</div>
+        </div>
+      </div>
+    </div>
+  </div>
+{% endblock %}

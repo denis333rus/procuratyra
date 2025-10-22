@@ -1,0 +1,87 @@
+{% extends 'layout.html' %}
+{% block title %}Противодействие коррупции{% endblock %}
+{% block content %}
+  <style>
+    .page-wrap { max-width: 1200px; margin: 0 auto; padding: 20px; }
+    .page-header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 30px; border-radius: 16px; margin-bottom: 30px; text-align: center; }
+    .page-header h1 { font-size: 32px; font-weight: 800; margin-bottom: 10px; }
+    .page-header p { font-size: 18px; opacity: 0.9; }
+    .content-section { background: white; border-radius: 12px; padding: 30px; margin-bottom: 20px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); }
+    .content-section h2 { color: #2d3748; margin-bottom: 20px; font-size: 24px; }
+    .info-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; margin-top: 20px; }
+    .info-card { background: #f7fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 20px; }
+    .info-card h3 { color: #2d3748; margin-bottom: 10px; }
+    .info-card p { color: #4a5568; line-height: 1.6; }
+    .contact-info { background: #e6fffa; border: 1px solid #38b2ac; border-radius: 8px; padding: 20px; margin: 20px 0; }
+    .contact-info h3 { color: #2c7a7b; margin-bottom: 10px; }
+    .btn { background: #667eea; color: white; padding: 12px 24px; border: none; border-radius: 6px; cursor: pointer; font-weight: 600; text-decoration: none; display: inline-block; margin: 10px 5px; }
+    .btn:hover { background: #5a67d8; }
+  </style>
+
+  <div class="page-wrap">
+    <div class="page-header">
+      <h1>Противодействие коррупции</h1>
+      <p>Информация для граждан о мерах противодействия коррупции</p>
+    </div>
+
+    <div class="content-section">
+      <h2>Основные направления работы</h2>
+      <div class="info-grid">
+        <div class="info-card">
+          <h3>Прокурорский надзор</h3>
+          <p>Осуществление надзора за соблюдением законодательства о противодействии коррупции, выявление и пресечение коррупционных правонарушений.</p>
+        </div>
+        <div class="info-card">
+          <h3>Уголовное преследование</h3>
+          <p>Возбуждение и расследование уголовных дел о коррупционных преступлениях, координация деятельности правоохранительных органов.</p>
+        </div>
+        <div class="info-card">
+          <h3>Профилактика коррупции</h3>
+          <p>Проведение антикоррупционной экспертизы нормативных правовых актов, анализ коррупционных рисков.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="content-section">
+      <h2>Статистика противодействия коррупции</h2>
+      <div class="info-grid">
+        <div class="info-card">
+          <h3>2024 год</h3>
+          <p>Возбуждено уголовных дел о коррупции: 2,847<br>
+          Из них по фактам взяточничества: 1,234<br>
+          Сумма ущерба: 15,6 млрд рублей</p>
+        </div>
+        <div class="info-card">
+          <h3>Результаты проверок</h3>
+          <p>Проведено проверок соблюдения антикоррупционного законодательства: 8,247<br>
+          Выявлено нарушений: 3,156<br>
+          Внесено представлений: 1,847</p>
+        </div>
+        <div class="info-card">
+          <h3>Возврат средств</h3>
+          <p>Возвращено в бюджет: 12,3 млрд рублей<br>
+          Конфисковано имущества на сумму: 8,7 млрд рублей<br>
+          Взыскано штрафов: 2,1 млрд рублей</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="content-section">
+      <h2>Нормативные документы</h2>
+      <ul style="list-style: none; padding: 0;">
+        <li style="margin-bottom: 10px; padding: 10px; background: #f7fafc; border-radius: 6px;">
+          <strong>Федеральный закон от 25.12.2008 № 273-ФЗ</strong><br>
+          "О противодействии коррупции"
+        </li>
+        <li style="margin-bottom: 10px; padding: 10px; background: #f7fafc; border-radius: 6px;">
+          <strong>Указ Президента РФ от 11.04.2014 № 226</strong><br>
+          "О Национальном плане противодействия коррупции на 2014-2015 годы"
+        </li>
+        <li style="margin-bottom: 10px; padding: 10px; background: #f7fafc; border-radius: 6px;">
+          <strong>Постановление Правительства РФ от 26.02.2010 № 96</strong><br>
+          "Об антикоррупционной экспертизе нормативных правовых актов и проектов нормативных правовых актов"
+        </li>
+      </ul>
+    </div>
+  </div>
+{% endblock %}
