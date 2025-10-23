@@ -508,7 +508,7 @@ def admin_fetch_lists():
     documents = [dict(r) for r in cur.fetchall()]
     cur.execute('SELECT id, date, name, message, photo FROM leaders ORDER BY id DESC LIMIT 50')
     leaders = [dict(r) for r in cur.fetchall()]
-    cur.execute('SELECT id, created_at, char_name, char_age, char_nationality, char_job, desired_login, status FROM job_applications ORDER BY id DESC LIMIT 200')
+    cur.execute('SELECT id, created_at, char_name, char_age, char_nationality, char_job, nick_ds, desired_login, status FROM job_applications ORDER BY id DESC LIMIT 200')
     job_apps = [dict(r) for r in cur.fetchall()]
     cur.execute('SELECT id, created_at, fio, nick_ds, violator_ds, violator_roblox, details, image, claimed_by, claimed_at FROM complaints ORDER BY id DESC LIMIT 200')
     complaints = [dict(r) for r in cur.fetchall()]
@@ -1209,6 +1209,105 @@ def admin_reject_job(app_id: int):
     return redirect(url_for('admin_jobs'))
 
 
+@app.route('/admin/jobs/details/<int:app_id>')
+def admin_job_details(app_id: int):
+    if not is_admin():
+        return redirect(url_for('admin_login'))
+    
+    conn = get_db()
+    cur = conn.cursor()
+    cur.execute('SELECT * FROM job_applications WHERE id=?', (app_id,))
+    app_data = cur.fetchone()
+    conn.close()
+    
+    if not app_data:
+        return jsonify({'error': 'Заявка не найдена'})
+    
+    # Convert to dict for easier access
+    app_dict = dict(app_data)
+    
+    # Generate HTML for the modal
+    html = f"""
+    <h2 style="color: #2d3748; margin-bottom: 20px;">Детали заявки #{app_dict['id']}</h2>
+    
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px;">
+        <div>
+            <h3 style="color: #4a5568; margin-bottom: 10px;">Основная информация</h3>
+            <p><strong>ФИО персонажа:</strong> {app_dict['char_name'] or 'Не указано'}</p>
+            <p><strong>Возраст персонажа:</strong> {app_dict['char_age'] or 'Не указано'}</p>
+            <p><strong>Национальность:</strong> {app_dict['char_nationality'] or 'Не указано'}</p>
+            <p><strong>Работа персонажа:</strong> {app_dict['char_job'] or 'Не указано'}</p>
+            <p><strong>Образование:</strong> {app_dict['char_education'] or 'Не указано'}</p>
+        </div>
+        
+        <div>
+            <h3 style="color: #4a5568; margin-bottom: 10px;">Контактная информация</h3>
+            <p><strong>Ник в ДС:</strong> {app_dict['nick_ds'] or 'Не указано'}</p>
+            <p><strong>Ник в Roblox:</strong> {app_dict['nick_roblox'] or 'Не указано'}</p>
+            <p><strong>Реальный возраст:</strong> {app_dict['real_age'] or 'Не указано'}</p>
+            <p><strong>Дата рождения персонажа:</strong> {app_dict['char_birth'] or 'Не указано'}</p>
+            <p><strong>Дата подачи:</strong> {app_dict['date_now'] or 'Не указано'}</p>
+        </div>
+    </div>
+    
+    <div style="margin-bottom: 20px;">
+        <h3 style="color: #4a5568; margin-bottom: 10px;">О себе</h3>
+        <div style="background: #f7fafc; padding: 15px; border-radius: 8px; border-left: 4px solid #667eea;">
+            {app_dict['about'] or 'Не указано'}
+        </div>
+    </div>
+    
+    <div style="margin-bottom: 20px;">
+        <h3 style="color: #4a5568; margin-bottom: 10px;">Что такое прокуратура</h3>
+        <div style="background: #f7fafc; padding: 15px; border-radius: 8px; border-left: 4px solid #667eea;">
+            {app_dict['what_is_prosecutor'] or 'Не указано'}
+        </div>
+    </div>
+    
+    <div style="margin-bottom: 20px;">
+        <h3 style="color: #4a5568; margin-bottom: 10px;">Проверка грамотности</h3>
+        <div style="background: #f7fafc; padding: 15px; border-radius: 8px; border-left: 4px solid #667eea;">
+            {app_dict['literacy_test'] or 'Не указано'}
+        </div>
+    </div>
+    
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px;">
+        <div>
+            <h3 style="color: #4a5568; margin-bottom: 10px;">Дополнительная информация</h3>
+            <p><strong>Судимости:</strong> {'Да' if app_dict['has_convictions'] == 'yes' else 'Нет' if app_dict['has_convictions'] == 'no' else 'Не указано'}</p>
+            <p><strong>Опыт:</strong> {'Да' if app_dict['has_experience'] == 'yes' else 'Нет' if app_dict['has_experience'] == 'no' else 'Не указано'}</p>
+        </div>
+        
+        <div>
+            <h3 style="color: #4a5568; margin-bottom: 10px;">Желаемые данные для входа</h3>
+            <p><strong>Логин:</strong> {app_dict['desired_login'] or 'Не указано'}</p>
+            <p><strong>Пароль:</strong> {'***' if app_dict['desired_password'] else 'Не указано'}</p>
+        </div>
+    </div>
+    
+    <div style="margin-bottom: 20px;">
+        <h3 style="color: #4a5568; margin-bottom: 10px;">Расшифровка терминов</h3>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+            <p><strong>УПК:</strong> {app_dict['term_upk'] or 'Не указано'}</p>
+            <p><strong>УК:</strong> {app_dict['term_uk'] or 'Не указано'}</p>
+            <p><strong>КоАП:</strong> {app_dict['term_koap'] or 'Не указано'}</p>
+            <p><strong>ТК:</strong> {app_dict['term_tk'] or 'Не указано'}</p>
+        </div>
+    </div>
+    
+    <div style="background: #e6fffa; padding: 15px; border-radius: 8px; border-left: 4px solid #10b981;">
+        <p><strong>Статус:</strong> 
+            <span style="color: {'#f59e0b' if app_dict['status'] == 'pending' else '#10b981' if app_dict['status'] == 'approved' else '#ef4444' if app_dict['status'] == 'rejected' else '#6b7280'}; font-weight: 600;">
+                {'Ожидает' if app_dict['status'] == 'pending' else 'Одобрено' if app_dict['status'] == 'approved' else 'Отклонено' if app_dict['status'] == 'rejected' else app_dict['status']}
+            </span>
+        </p>
+        <p><strong>Дата создания:</strong> {app_dict['created_at'] or 'Не указано'}</p>
+    </div>
+    """
+    
+    return jsonify({'html': html})
+
+
 @app.route('/admin/users')
 def admin_users():
     if not is_admin():
@@ -1337,4 +1436,4 @@ def prosecutor_add_draft():
 
 
 if __name__ == '__main__':
-    app.run(host='127.0.0.1', port=5000, debug=True)
+    app.run(host='127.0.0.1', port=8080, debug=True)

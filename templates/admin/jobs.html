@@ -331,6 +331,56 @@
     .flash-error { background: #fee2e2; color: #991b1b; border: 1px solid #fca5a5; }
     .flash-info { background: #dbeafe; color: #1e40af; border: 1px solid #93c5fd; }
     
+    /* Modal styles */
+    .modal {
+      display: none;
+      position: fixed;
+      z-index: 1000;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0,0,0,0.5);
+      animation: fadeIn 0.3s ease;
+    }
+    
+    .modal-content {
+      background-color: #fefefe;
+      margin: 5% auto;
+      padding: 20px;
+      border: 1px solid #888;
+      width: 80%;
+      max-width: 800px;
+      border-radius: 12px;
+      max-height: 80vh;
+      overflow-y: auto;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+      animation: slideIn 0.3s ease;
+    }
+    
+    .close {
+      color: #aaa;
+      float: right;
+      font-size: 28px;
+      font-weight: bold;
+      cursor: pointer;
+      transition: color 0.3s ease;
+    }
+    
+    .close:hover {
+      color: #000;
+    }
+    
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+    
+    @keyframes slideIn {
+      from { transform: translateY(-50px); opacity: 0; }
+      to { transform: translateY(0); opacity: 1; }
+    }
+    
     .admin-table tbody tr:last-child td {
       border-bottom: none;
     }
@@ -427,6 +477,7 @@
             <th>Возраст</th>
             <th>Национальность</th>
             <th>Работа</th>
+            <th>Ник ДС</th>
             <th>Желаемый логин</th>
             <th>Статус</th>
             <th>Действия</th>
@@ -441,6 +492,7 @@
             <td>{{ a.char_age }}</td>
             <td>{{ a.char_nationality }}</td>
             <td>{{ a.char_job }}</td>
+            <td>{{ a.nick_ds }}</td>
             <td>{{ a.desired_login }}</td>
             <td>
               {% if a.status == 'pending' %}
@@ -454,6 +506,7 @@
               {% endif %}
             </td>
             <td>
+              <button class="details-btn" data-app-id="{{ a.id }}" style="background: #3b82f6; color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-size: 12px; margin-right: 4px;">Подробно</button>
               {% if a.status == 'pending' %}
                 <form method="post" action="{{ url_for('admin_approve_job', app_id=a.id) }}" style="display: inline-block; margin-right: 8px;">
                   <button type="submit" style="background: #10b981; color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-size: 12px;">Одобрить</button>
@@ -470,6 +523,53 @@
         </tbody>
       </table>
     </div>
+
+    <!-- Modal for application details -->
+    <div id="applicationModal" class="modal">
+      <div class="modal-content">
+        <span class="close" onclick="closeModal()">&times;</span>
+        <div id="applicationDetails"></div>
+      </div>
+    </div>
+
+    <script>
+      function showApplicationDetails(appId) {
+        // Fetch application details via AJAX
+        fetch(`/admin/jobs/details/${appId}`)
+          .then(response => response.json())
+          .then(data => {
+            document.getElementById('applicationDetails').innerHTML = data.html;
+            document.getElementById('applicationModal').style.display = 'block';
+          })
+          .catch(error => {
+            console.error('Error:', error);
+            alert('Ошибка загрузки данных заявки');
+          });
+      }
+
+      function closeModal() {
+        document.getElementById('applicationModal').style.display = 'none';
+      }
+
+      // Add event listeners for detail buttons
+      document.addEventListener('DOMContentLoaded', function() {
+        const detailButtons = document.querySelectorAll('.details-btn');
+        detailButtons.forEach(button => {
+          button.addEventListener('click', function() {
+            const appId = this.getAttribute('data-app-id');
+            showApplicationDetails(appId);
+          });
+        });
+      });
+
+      // Close modal when clicking outside of it
+      window.onclick = function(event) {
+        const modal = document.getElementById('applicationModal');
+        if (event.target == modal) {
+          modal.style.display = 'none';
+        }
+      }
+    </script>
   </div>
 </body>
 </html>
