@@ -3,25 +3,67 @@ import sqlite3
 from pathlib import Path
 import os
 from werkzeug.utils import secure_filename
+from dotenv import load_dotenv
 
+# Load environment variables
+load_dotenv()
 
 app = Flask(__name__, template_folder='templates')
-app.secret_key = 'change-me-in-production'
-ADMIN_USERNAME = 'admin'
-ADMIN_PASSWORD = 'admin123'
-PROSECUTOR_USERNAME = 'proc'
-PROSECUTOR_PASSWORD = 'proc123'
 
-DB_PATH = Path(__file__).with_name('data.db')
+# Configuration from environment variables
+app.secret_key = os.getenv('SECRET_KEY', 'change-me-in-production')
+ADMIN_USERNAME = os.getenv('ADMIN_USERNAME', 'admin')
+ADMIN_PASSWORD = os.getenv('ADMIN_PASSWORD', 'admin123')
+PROSECUTOR_USERNAME = os.getenv('PROSECUTOR_USERNAME', 'proc')
+PROSECUTOR_PASSWORD = os.getenv('PROSECUTOR_PASSWORD', 'proc123')
+
+# Production security settings
+if os.getenv('FLASK_ENV') == 'production':
+    app.config['SESSION_COOKIE_SECURE'] = True
+    app.config['SESSION_COOKIE_HTTPONLY'] = True
+    app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
+    app.config['PERMANENT_SESSION_LIFETIME'] = 3600  # 1 hour
+    
+    # Add security headers
+    @app.after_request
+    def add_security_headers(response):
+        response.headers['X-Content-Type-Options'] = 'nosniff'
+        response.headers['X-Frame-Options'] = 'DENY'
+        response.headers['X-XSS-Protection'] = '1; mode=block'
+        response.headers['Strict-Transport-Security'] = 'max-age=31536000; includeSubDomains'
+        response.headers['Content-Security-Policy'] = "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self'"
+        return response
+
+# Database configuration for Railway
+DATABASE_URL = os.getenv('DATABASE_URL')
+if DATABASE_URL:
+    # Use PostgreSQL for production (Railway)
+    import psycopg2
+    from psycopg2.extras import RealDictCursor
+    DB_TYPE = 'postgresql'
+else:
+    # Use SQLite for development
+    DB_PATH = Path(__file__).with_name('data.db')
+    DB_TYPE = 'sqlite'
+
+# Upload folder configuration
 UPLOAD_FOLDER = Path(__file__).parent / 'uploads'
 UPLOAD_FOLDER.mkdir(exist_ok=True)
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif', 'webp'}
 
+# Set max content length for uploads
+app.config['MAX_CONTENT_LENGTH'] = int(os.getenv('MAX_CONTENT_LENGTH', 16 * 1024 * 1024))  # 16MB default
+
 
 def get_db():
-    conn = sqlite3.connect(DB_PATH)
-    conn.row_factory = sqlite3.Row
-    return conn
+    if DB_TYPE == 'postgresql':
+        conn = psycopg2.connect(DATABASE_URL)
+        conn.cursor_factory = RealDictCursor
+        return conn
+    else:
+        conn = sqlite3.connect(DB_PATH)
+        conn.row_factory = sqlite3.Row
+        return conn
 
 
 def allowed_file(filename):
@@ -31,193 +73,337 @@ def allowed_file(filename):
 def init_db():
     conn = get_db()
     cur = conn.cursor()
-    cur.execute(
-        """
-        CREATE TABLE IF NOT EXISTS slider_news (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            date TEXT NOT NULL,
-            title TEXT NOT NULL,
-            description TEXT,
-            image TEXT
-        )
-        """
-    )
-    cur.execute(
-        """
-        CREATE TABLE IF NOT EXISTS feed_news (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            date TEXT NOT NULL,
-            time TEXT NOT NULL,
-            title TEXT NOT NULL,
-            description TEXT,
-            url TEXT NOT NULL
-        )
-        """
-    )
-    cur.execute(
-        """
-        CREATE TABLE IF NOT EXISTS job_applications (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            nick_ds TEXT, nick_roblox TEXT,
-            char_name TEXT, real_age INTEGER, char_birth TEXT, date_now TEXT,
-            char_age INTEGER, char_nationality TEXT, char_job TEXT,
-            char_education TEXT, about TEXT, what_is_prosecutor TEXT,
-            literacy_test TEXT, has_convictions TEXT, has_experience TEXT,
-            term_upk TEXT, term_uk TEXT, term_koap TEXT, term_tk TEXT,
-            desired_login TEXT, desired_password TEXT,
-            status TEXT DEFAULT 'pending', -- pending, approved, rejected
-            created_at TEXT DEFAULT CURRENT_TIMESTAMP
-        )
-        """
-    )
-    cur.execute(
-        """
-        CREATE TABLE IF NOT EXISTS employees (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            name TEXT NOT NULL,
-            position TEXT NOT NULL,
-            contact TEXT
-        )
-        """
-    )
-    cur.execute(
-        """
-        CREATE TABLE IF NOT EXISTS documents (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            date TEXT,
-            title TEXT NOT NULL,
-            url TEXT NOT NULL
-        )
-        """
-    )
-    cur.execute(
-        """
-        CREATE TABLE IF NOT EXISTS leaders (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            date TEXT,
-            name TEXT,
-            message TEXT NOT NULL,
-            photo TEXT
-        )
-        """
-    )
     
-    # Add photo column if it doesn't exist (for existing databases)
-    try:
-        cur.execute("ALTER TABLE leaders ADD COLUMN photo TEXT")
-    except:
-        pass  # Column already exists
+    # Define table schemas for both databases
+    tables = {
+        'slider_news': {
+            'postgresql': """
+                CREATE TABLE IF NOT EXISTS slider_news (
+                    id SERIAL PRIMARY KEY,
+                    date TEXT NOT NULL,
+                    title TEXT NOT NULL,
+                    description TEXT,
+                    image TEXT
+                )
+            """,
+            'sqlite': """
+                CREATE TABLE IF NOT EXISTS slider_news (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    date TEXT NOT NULL,
+                    title TEXT NOT NULL,
+                    description TEXT,
+                    image TEXT
+                )
+            """
+        },
+        'feed_news': {
+            'postgresql': """
+                CREATE TABLE IF NOT EXISTS feed_news (
+                    id SERIAL PRIMARY KEY,
+                    date TEXT NOT NULL,
+                    time TEXT NOT NULL,
+                    title TEXT NOT NULL,
+                    description TEXT,
+                    url TEXT NOT NULL
+                )
+            """,
+            'sqlite': """
+                CREATE TABLE IF NOT EXISTS feed_news (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    date TEXT NOT NULL,
+                    time TEXT NOT NULL,
+                    title TEXT NOT NULL,
+                    description TEXT,
+                    url TEXT NOT NULL
+                )
+            """
+        },
+        'job_applications': {
+            'postgresql': """
+                CREATE TABLE IF NOT EXISTS job_applications (
+                    id SERIAL PRIMARY KEY,
+                    nick_ds TEXT, nick_roblox TEXT,
+                    char_name TEXT, real_age INTEGER, char_birth TEXT, date_now TEXT,
+                    char_age INTEGER, char_nationality TEXT, char_job TEXT,
+                    char_education TEXT, about TEXT, what_is_prosecutor TEXT,
+                    literacy_test TEXT, has_convictions TEXT, has_experience TEXT,
+                    term_upk TEXT, term_uk TEXT, term_koap TEXT, term_tk TEXT,
+                    desired_login TEXT, desired_password TEXT,
+                    status TEXT DEFAULT 'pending',
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                )
+            """,
+            'sqlite': """
+                CREATE TABLE IF NOT EXISTS job_applications (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    nick_ds TEXT, nick_roblox TEXT,
+                    char_name TEXT, real_age INTEGER, char_birth TEXT, date_now TEXT,
+                    char_age INTEGER, char_nationality TEXT, char_job TEXT,
+                    char_education TEXT, about TEXT, what_is_prosecutor TEXT,
+                    literacy_test TEXT, has_convictions TEXT, has_experience TEXT,
+                    term_upk TEXT, term_uk TEXT, term_koap TEXT, term_tk TEXT,
+                    desired_login TEXT, desired_password TEXT,
+                    status TEXT DEFAULT 'pending',
+                    created_at TEXT DEFAULT CURRENT_TIMESTAMP
+                )
+            """
+        },
+        'employees': {
+            'postgresql': """
+                CREATE TABLE IF NOT EXISTS employees (
+                    id SERIAL PRIMARY KEY,
+                    name TEXT NOT NULL,
+                    position TEXT NOT NULL,
+                    contact TEXT
+                )
+            """,
+            'sqlite': """
+                CREATE TABLE IF NOT EXISTS employees (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    name TEXT NOT NULL,
+                    position TEXT NOT NULL,
+                    contact TEXT
+                )
+            """
+        },
+        'documents': {
+            'postgresql': """
+                CREATE TABLE IF NOT EXISTS documents (
+                    id SERIAL PRIMARY KEY,
+                    date TEXT,
+                    title TEXT NOT NULL,
+                    description TEXT,
+                    url TEXT NOT NULL
+                )
+            """,
+            'sqlite': """
+                CREATE TABLE IF NOT EXISTS documents (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    date TEXT,
+                    title TEXT NOT NULL,
+                    description TEXT,
+                    url TEXT NOT NULL
+                )
+            """
+        },
+        'leaders': {
+            'postgresql': """
+                CREATE TABLE IF NOT EXISTS leaders (
+                    id SERIAL PRIMARY KEY,
+                    date TEXT,
+                    name TEXT,
+                    message TEXT NOT NULL,
+                    photo TEXT
+                )
+            """,
+            'sqlite': """
+                CREATE TABLE IF NOT EXISTS leaders (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    date TEXT,
+                    name TEXT,
+                    message TEXT NOT NULL,
+                    photo TEXT
+                )
+            """
+        },
+        'notifications': {
+            'postgresql': """
+                CREATE TABLE IF NOT EXISTS notifications (
+                    id SERIAL PRIMARY KEY,
+                    title TEXT NOT NULL,
+                    message TEXT NOT NULL,
+                    type TEXT NOT NULL,
+                    recipient_role TEXT NOT NULL,
+                    recipient_id INTEGER,
+                    is_read BOOLEAN DEFAULT FALSE,
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    data TEXT
+                )
+            """,
+            'sqlite': """
+                CREATE TABLE IF NOT EXISTS notifications (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    title TEXT NOT NULL,
+                    message TEXT NOT NULL,
+                    type TEXT NOT NULL,
+                    recipient_role TEXT NOT NULL,
+                    recipient_id INTEGER,
+                    is_read BOOLEAN DEFAULT FALSE,
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    data TEXT
+                )
+            """
+        },
+        'contacts': {
+            'postgresql': """
+                CREATE TABLE IF NOT EXISTS contacts (
+                    id SERIAL PRIMARY KEY,
+                    label TEXT NOT NULL,
+                    value TEXT NOT NULL
+                )
+            """,
+            'sqlite': """
+                CREATE TABLE IF NOT EXISTS contacts (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    label TEXT NOT NULL,
+                    value TEXT NOT NULL
+                )
+            """
+        },
+        'complaints': {
+            'postgresql': """
+                CREATE TABLE IF NOT EXISTS complaints (
+                    id SERIAL PRIMARY KEY,
+                    fio TEXT NOT NULL,
+                    nick_ds TEXT NOT NULL,
+                    violator_ds TEXT,
+                    violator_roblox TEXT NOT NULL,
+                    details TEXT NOT NULL,
+                    image TEXT,
+                    claimed_by TEXT,
+                    claimed_at TEXT,
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                )
+            """,
+            'sqlite': """
+                CREATE TABLE IF NOT EXISTS complaints (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    fio TEXT NOT NULL,
+                    nick_ds TEXT NOT NULL,
+                    violator_ds TEXT,
+                    violator_roblox TEXT NOT NULL,
+                    details TEXT NOT NULL,
+                    image TEXT,
+                    claimed_by TEXT,
+                    claimed_at TEXT,
+                    created_at TEXT DEFAULT CURRENT_TIMESTAMP
+                )
+            """
+        },
+        'documents_drafts': {
+            'postgresql': """
+                CREATE TABLE IF NOT EXISTS documents_drafts (
+                    id SERIAL PRIMARY KEY,
+                    created_by TEXT NOT NULL,
+                    title TEXT NOT NULL,
+                    description TEXT,
+                    url TEXT,
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    status TEXT DEFAULT 'pending'
+                )
+            """,
+            'sqlite': """
+                CREATE TABLE IF NOT EXISTS documents_drafts (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    created_by TEXT NOT NULL,
+                    title TEXT NOT NULL,
+                    description TEXT,
+                    url TEXT,
+                    created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+                    status TEXT DEFAULT 'pending'
+                )
+            """
+        },
+        'user_accounts': {
+            'postgresql': """
+                CREATE TABLE IF NOT EXISTS user_accounts (
+                    id SERIAL PRIMARY KEY,
+                    username TEXT UNIQUE NOT NULL,
+                    password TEXT NOT NULL,
+                    full_name TEXT NOT NULL,
+                    role TEXT DEFAULT 'employee',
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    created_from_application INTEGER
+                )
+            """,
+            'sqlite': """
+                CREATE TABLE IF NOT EXISTS user_accounts (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    username TEXT UNIQUE NOT NULL,
+                    password TEXT NOT NULL,
+                    full_name TEXT NOT NULL,
+                    role TEXT DEFAULT 'employee',
+                    created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+                    created_from_application INTEGER,
+                    FOREIGN KEY (created_from_application) REFERENCES job_applications(id)
+                )
+            """
+        },
+        'organs_units': {
+            'postgresql': """
+                CREATE TABLE IF NOT EXISTS organs_units (
+                    id SERIAL PRIMARY KEY,
+                    name TEXT NOT NULL,
+                    description TEXT,
+                    url TEXT
+                )
+            """,
+            'sqlite': """
+                CREATE TABLE IF NOT EXISTS organs_units (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    name TEXT NOT NULL,
+                    description TEXT,
+                    url TEXT
+                )
+            """
+        },
+        'app_settings': {
+            'postgresql': """
+                CREATE TABLE IF NOT EXISTS app_settings (
+                    key TEXT PRIMARY KEY,
+                    value TEXT
+                )
+            """,
+            'sqlite': """
+                CREATE TABLE IF NOT EXISTS app_settings (
+                    key TEXT PRIMARY KEY,
+                    value TEXT
+                )
+            """
+        }
+    }
     
-    # Create notifications table
-    cur.execute(
-        """
-        CREATE TABLE IF NOT EXISTS notifications (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            title TEXT NOT NULL,
-            message TEXT NOT NULL,
-            type TEXT NOT NULL,
-            recipient_role TEXT NOT NULL,
-            recipient_id INTEGER,
-            is_read BOOLEAN DEFAULT FALSE,
-            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-            data TEXT
-        )
-        """
-    )
-    cur.execute(
-        """
-        CREATE TABLE IF NOT EXISTS contacts (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            label TEXT NOT NULL,
-            value TEXT NOT NULL
-        )
-        """
-    )
-    cur.execute(
-        """
-        CREATE TABLE IF NOT EXISTS complaints (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            fio TEXT NOT NULL,
-            nick_ds TEXT NOT NULL,
-            violator_ds TEXT,
-            violator_roblox TEXT NOT NULL,
-            details TEXT NOT NULL,
-            image TEXT,
-            claimed_by TEXT,
-            claimed_at TEXT,
-            created_at TEXT DEFAULT CURRENT_TIMESTAMP
-        )
-        """
-    )
-    cur.execute(
-        """
-        CREATE TABLE IF NOT EXISTS documents_drafts (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            created_by TEXT NOT NULL,
-            title TEXT NOT NULL,
-            description TEXT,
-            url TEXT,
-            created_at TEXT DEFAULT CURRENT_TIMESTAMP,
-            status TEXT DEFAULT 'pending' -- pending, approved, rejected
-        )
-        """
-    )
-    cur.execute(
-        """
-        CREATE TABLE IF NOT EXISTS user_accounts (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            username TEXT UNIQUE NOT NULL,
-            password TEXT NOT NULL,
-            full_name TEXT NOT NULL,
-            role TEXT DEFAULT 'employee', -- employee, prosecutor, admin
-            created_at TEXT DEFAULT CURRENT_TIMESTAMP,
-            created_from_application INTEGER, -- job application ID
-            FOREIGN KEY (created_from_application) REFERENCES job_applications(id)
-        )
-        """
-    )
-    cur.execute(
-        """
-        CREATE TABLE IF NOT EXISTS organs_units (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            name TEXT NOT NULL,
-            description TEXT,
-            url TEXT
-        )
-        """
-    )
-    # Таблица настроек приложения (key-value), редактируется админом
-    cur.execute(
-        """
-        CREATE TABLE IF NOT EXISTS app_settings (
-            key TEXT PRIMARY KEY,
-            value TEXT
-        )
-        """
-    )
-    # Миграция: добавляем колонку description в documents, если её нет
-    cur.execute("PRAGMA table_info(documents)")
-    cols = [r[1] for r in cur.fetchall()]
-    if 'description' not in cols:
-        cur.execute('ALTER TABLE documents ADD COLUMN description TEXT')
+    # Create all tables
+    for table_name, schemas in tables.items():
+        cur.execute(schemas[DB_TYPE])
     
-    # Миграция: добавляем колонки claimed_by и claimed_at в complaints, если их нет
-    cur.execute("PRAGMA table_info(complaints)")
-    complaint_cols = [r[1] for r in cur.fetchall()]
-    if 'claimed_by' not in complaint_cols:
-        cur.execute('ALTER TABLE complaints ADD COLUMN claimed_by TEXT')
-    if 'claimed_at' not in complaint_cols:
-        cur.execute('ALTER TABLE complaints ADD COLUMN claimed_at TEXT')
-    
-    # Миграция: добавляем колонки в job_applications, если их нет
-    cur.execute("PRAGMA table_info(job_applications)")
-    job_cols = [r[1] for r in cur.fetchall()]
-    if 'desired_login' not in job_cols:
-        cur.execute('ALTER TABLE job_applications ADD COLUMN desired_login TEXT')
-    if 'desired_password' not in job_cols:
-        cur.execute('ALTER TABLE job_applications ADD COLUMN desired_password TEXT')
-    if 'status' not in job_cols:
-        cur.execute('ALTER TABLE job_applications ADD COLUMN status TEXT DEFAULT "pending"')
+    # Handle migrations for SQLite only
+    if DB_TYPE == 'sqlite':
+        # Add photo column if it doesn't exist
+        try:
+            cur.execute("ALTER TABLE leaders ADD COLUMN photo TEXT")
+        except:
+            pass
+        
+        # Add description column to documents if it doesn't exist
+        try:
+            cur.execute("ALTER TABLE documents ADD COLUMN description TEXT")
+        except:
+            pass
+        
+        # Add claimed_by and claimed_at columns to complaints if they don't exist
+        try:
+            cur.execute("ALTER TABLE complaints ADD COLUMN claimed_by TEXT")
+        except:
+            pass
+        try:
+            cur.execute("ALTER TABLE complaints ADD COLUMN claimed_at TEXT")
+        except:
+            pass
+        
+        # Add columns to job_applications if they don't exist
+        try:
+            cur.execute('ALTER TABLE job_applications ADD COLUMN desired_login TEXT')
+        except:
+            pass
+        try:
+            cur.execute('ALTER TABLE job_applications ADD COLUMN desired_password TEXT')
+        except:
+            pass
+        try:
+            cur.execute('ALTER TABLE job_applications ADD COLUMN status TEXT DEFAULT "pending"')
+        except:
+            pass
 
     conn.commit()
     conn.close()
@@ -1436,4 +1622,6 @@ def prosecutor_add_draft():
 
 
 if __name__ == '__main__':
-    app.run(host='127.0.0.1', port=8080, debug=True)
+    port = int(os.getenv('PORT', 8080))
+    debug = os.getenv('FLASK_ENV') != 'production'
+    app.run(host='0.0.0.0', port=port, debug=debug)
