@@ -360,6 +360,28 @@ def init_db():
                     value TEXT
                 )
             """
+        },
+        'hotline_appeals': {
+            'postgresql': """
+                CREATE TABLE IF NOT EXISTS hotline_appeals (
+                    id SERIAL PRIMARY KEY,
+                    fio TEXT NOT NULL,
+                    organization TEXT,
+                    subject TEXT NOT NULL,
+                    message TEXT NOT NULL,
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                )
+            """,
+            'sqlite': """
+                CREATE TABLE IF NOT EXISTS hotline_appeals (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    fio TEXT NOT NULL,
+                    organization TEXT,
+                    subject TEXT NOT NULL,
+                    message TEXT NOT NULL,
+                    created_at TEXT DEFAULT CURRENT_TIMESTAMP
+                )
+            """
         }
     }
     
@@ -752,7 +774,8 @@ def admin_important():
     if not is_admin():
         return redirect(url_for('admin_login'))
     slider, feed, employees, documents, leaders, job_apps, complaints = admin_fetch_lists()
-    return render_template('admin/important.html', slider_news=slider)
+    unread_count = get_unread_count('admin')
+    return render_template('admin/important.html', slider_news=slider, unread_count=unread_count)
 
 
 @app.route('/admin/ordinary')
@@ -760,7 +783,8 @@ def admin_ordinary():
     if not is_admin():
         return redirect(url_for('admin_login'))
     slider, feed, employees, documents, leaders, job_apps, complaints = admin_fetch_lists()
-    return render_template('admin/ordinary.html', feed=feed)
+    unread_count = get_unread_count('admin')
+    return render_template('admin/ordinary.html', feed=feed, unread_count=unread_count)
 
 
 @app.route('/admin/employees')
@@ -768,7 +792,8 @@ def admin_employees():
     if not is_admin():
         return redirect(url_for('admin_login'))
     slider, feed, employees, documents, leaders, job_apps, complaints = admin_fetch_lists()
-    return render_template('admin/employees.html', employees=employees)
+    unread_count = get_unread_count('admin')
+    return render_template('admin/employees.html', employees=employees, unread_count=unread_count)
 
 
 @app.route('/admin/jobs')
@@ -776,7 +801,8 @@ def admin_jobs():
     if not is_admin():
         return redirect(url_for('admin_login'))
     slider, feed, employees, documents, leaders, job_apps, complaints = admin_fetch_lists()
-    return render_template('admin/jobs.html', job_apps=job_apps)
+    unread_count = get_unread_count('admin')
+    return render_template('admin/jobs.html', job_apps=job_apps, unread_count=unread_count)
 
 
 @app.route('/admin/docs')
@@ -784,7 +810,8 @@ def admin_docs():
     if not is_admin():
         return redirect(url_for('admin_login'))
     slider, feed, employees, documents, leaders, job_apps, complaints = admin_fetch_lists()
-    return render_template('admin/documents.html', documents=documents)
+    unread_count = get_unread_count('admin')
+    return render_template('admin/documents.html', documents=documents, unread_count=unread_count)
 
 
 @app.route('/admin/leader')
@@ -804,7 +831,21 @@ def admin_complaints():
     cur.execute('SELECT id, created_at, fio, nick_ds, violator_ds, violator_roblox, details, image, claimed_by, claimed_at FROM complaints ORDER BY id DESC LIMIT 300')
     complaints = [dict(r) for r in cur.fetchall()]
     conn.close()
-    return render_template('admin/complaints.html', complaints=complaints)
+    unread_count = get_unread_count('admin')
+    return render_template('admin/complaints.html', complaints=complaints, unread_count=unread_count)
+
+
+@app.route('/admin/hotline')
+def admin_hotline():
+    if not is_admin():
+        return redirect(url_for('admin_login'))
+    conn = get_db()
+    cur = conn.cursor()
+    cur.execute('SELECT id, created_at, fio, organization, subject, message FROM hotline_appeals ORDER BY id DESC LIMIT 300')
+    appeals = [dict(r) for r in cur.fetchall()]
+    conn.close()
+    unread_count = get_unread_count('admin')
+    return render_template('admin/hotline_appeals.html', appeals=appeals, unread_count=unread_count)
 
 
 @app.route('/admin/news/add', methods=['POST'])
@@ -1093,7 +1134,7 @@ def activity():
 
 
 
-@app.route('/internet-reception')
+@app.route('/internet-reception', methods=['GET', 'POST'])
 def internet_reception():
     if request.method == 'POST':
         # Сохранение жалобы в БД + опциональная картинка
@@ -1257,7 +1298,8 @@ def admin_stats():
     row = cur.fetchone()
     current_value = row[0] if row and row[0] is not None else '0'
     conn.close()
-    return render_template('admin/stats.html', politicians_removed=current_value)
+    unread_count = get_unread_count('admin')
+    return render_template('admin/stats.html', politicians_removed=current_value, unread_count=unread_count)
 
 
 @app.route('/anticorruption')
@@ -1292,8 +1334,34 @@ def leadership():
     return render_template('leadership.html', leaders=leaders_data)
 
 
-@app.route('/hotline')
+@app.route('/hotline', methods=['GET', 'POST'])
 def hotline():
+    if request.method == 'POST':
+        # Получаем данные формы
+        fio = request.form.get('name', '').strip()
+        organization = request.form.get('organization', '').strip()
+        subject = request.form.get('subject', '').strip()
+        message = request.form.get('message', '').strip()
+        
+        # Сохраняем обращение в БД
+        conn = get_db()
+        conn.execute(
+            'INSERT INTO hotline_appeals(fio, organization, subject, message) VALUES(?,?,?,?)',
+            (fio, organization, subject, message)
+        )
+        conn.commit()
+        conn.close()
+        
+        # Создать уведомление для админов
+        create_notification(
+            title="Новое обращение на горячую линию",
+            message=f"Поступило обращение от {fio} на тему: {subject}",
+            notification_type="hotline_appeal",
+            recipient_role="admin"
+        )
+        
+        return render_template('submitted.html', title='Обращение отправлено', message='Спасибо! Ваше обращение принято.')
+    
     return render_template('hotline.html')
 
 
@@ -1306,7 +1374,8 @@ def admin_contacts():
     cur.execute('SELECT id, label, value FROM contacts ORDER BY id ASC')
     items = [dict(r) for r in cur.fetchall()]
     conn.close()
-    return render_template('admin/contacts.html', contacts=items)
+    unread_count = get_unread_count('admin')
+    return render_template('admin/contacts.html', contacts=items, unread_count=unread_count)
 
 
 @app.route('/admin/contacts/add', methods=['POST'])
@@ -1504,8 +1573,8 @@ def admin_users():
     cur.execute('SELECT id, username, full_name, role, created_at FROM user_accounts ORDER BY created_at DESC')
     users = cur.fetchall()
     conn.close()
-    
-    return render_template('admin/users.html', users=users)
+    unread_count = get_unread_count('admin')
+    return render_template('admin/users.html', users=users, unread_count=unread_count)
 
 
 @app.route('/admin/users/edit/<int:user_id>', methods=['GET', 'POST'])

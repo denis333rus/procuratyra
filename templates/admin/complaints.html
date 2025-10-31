@@ -25,6 +25,7 @@
       <div class="card__header">
         <h2 class="card__title">Жалобы из интернет‑приёмной</h2>
         <div class="nav">
+          <span style="display:inline-flex; align-items:center; gap:6px; margin-right:8px;">🔔 <strong>{{ unread_count or 0 }}</strong></span>
           <a class="btn btn--primary" href="{{ url_for('admin_home') }}">К разделам админки</a>
         </div>
       </div>
@@ -36,8 +37,8 @@
               <th>Создано</th>
               <th>ФИО</th>
               <th>Ник в ДС</th>
-              <th>Нарушитель ДС</th>
-              <th>Нарушитель Roblox</th>
+              <th>ДС нарушителя</th>
+              <th>Ник в Roblox нарушителя</th>
               <th>Описание</th>
               <th>Фото</th>
             </tr>

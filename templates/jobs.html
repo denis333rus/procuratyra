@@ -23,7 +23,7 @@
     </div>
 
     <div class="job-card">
-      <form method="post" action="/jobs" class="form-grid">
+      <form method="post" action="/jobs" class="form-grid" id="job-form">
         <div class="form-grid grid-2">
           <div class="field">
             <label class="label" for="nick_ds">Ваш ник в ДС</label>
@@ -37,17 +37,17 @@
 
         <div class="field">
           <label class="label" for="char_name">ФИО персонажа <span aria-hidden="true">*</span></label>
-          <input class="input" id="char_name" name="char_name" type="text">
+          <input class="input" id="char_name" name="char_name" type="text" required>
         </div>
 
         <div class="form-grid grid-2">
           <div class="field">
             <label class="label" for="real_age">Сколько вам лет в реале? <span aria-hidden="true">*</span></label>
-            <input class="input" id="real_age" name="real_age" type="number">
+            <input class="input" id="real_age" name="real_age" type="number" required>
           </div>
           <div class="field">
             <label class="label" for="char_birth">Дата рождения вашего персонажа <span aria-hidden="true">*</span></label>
-            <input class="input" id="char_birth" name="char_birth" type="date">
+            <input class="input" id="char_birth" name="char_birth" type="date" required>
           </div>
         </div>
 
@@ -58,14 +58,14 @@
           </div>
           <div class="field">
             <label class="label" for="char_age">Сколько лет вашему персонажу? <span aria-hidden="true">*</span></label>
-            <input class="input" id="char_age" name="char_age" type="number">
+            <input class="input" id="char_age" name="char_age" type="number" required>
           </div>
         </div>
 
         <div class="form-grid grid-2">
           <div class="field">
             <label class="label" for="char_nationality">Национальность персонажа <span aria-hidden="true">*</span></label>
-            <input class="input" id="char_nationality" name="char_nationality" type="text">
+            <input class="input" id="char_nationality" name="char_nationality" type="text" required>
           </div>
           <div class="field">
             <label class="label" for="char_job">Работа, на которой работает персонаж</label>
@@ -80,31 +80,34 @@
 
         <div class="field">
           <label class="label" for="about">Расскажите о себе <span aria-hidden="true">*</span></label>
-          <textarea class="textarea" id="about" name="about" rows="4"></textarea>
+          <textarea class="textarea" id="about" name="about" rows="4" required></textarea>
         </div>
 
         <div class="field">
           <label class="label" for="what_is_prosecutor">Объясните своими словами, что такое прокуратура <span aria-hidden="true">*</span></label>
-          <textarea class="textarea" id="what_is_prosecutor" name="what_is_prosecutor" rows="4"></textarea>
+          <textarea class="textarea" id="what_is_prosecutor" name="what_is_prosecutor" rows="4" required></textarea>
         </div>
 
         <div class="field">
           <label class="label" for="literacy_test">Проверка на грамотность: напишите минимум 5 сложных предложений грамотно <span aria-hidden="true">*</span></label>
-          <textarea class="textarea" id="literacy_test" name="literacy_test" rows="6"></textarea>
+          <textarea class="textarea" id="literacy_test" name="literacy_test" rows="6" required></textarea>
           <div class="help">Постарайтесь раскрыть мысль и показать владение письменной речью.</div>
+          <div id="literacy_error" style="color: #dc3545; font-size: 12px; margin-top: 4px; display: none;">Минимальное количество предложений: 5</div>
         </div>
 
         <div class="form-grid grid-2">
           <div class="field">
             <label class="label">Имеете ли судимости? <span aria-hidden="true">*</span></label>
-            <select class="select" name="has_convictions">
+            <select class="select" name="has_convictions" required>
+              <option value="">Выберите...</option>
               <option value="no">Нет</option>
               <option value="yes">Да</option>
             </select>
           </div>
           <div class="field">
             <label class="label">Имеете ли вы опыт? <span aria-hidden="true">*</span></label>
-            <select class="select" name="has_experience">
+            <select class="select" name="has_experience" required>
+              <option value="">Выберите...</option>
               <option value="no">Нет</option>
               <option value="yes">Да</option>
             </select>
@@ -124,11 +127,11 @@
         </div>
         <div class="field">
           <label class="label">Желаемый пароль для входа в систему <span aria-hidden="true">*</span></label>
-          <input class="input" name="password" type="text" placeholder="Пароль">
+          <input class="input" name="password" type="text" placeholder="Пароль" required>
         </div>
         <div class="field">
           <label class="label">Желаемый логин для входа в систему <span aria-hidden="true">*</span></label>
-          <input class="input" name="login" type="text" placeholder="Логин">
+          <input class="input" name="login" type="text" placeholder="Логин" required>
         </div>
 
         <div class="actions">
@@ -138,6 +141,41 @@
       </form>
     </div>
   </div>
+
+  <script>
+    document.getElementById('job-form').addEventListener('submit', function(e) {
+      const literacyTest = document.getElementById('literacy_test').value.trim();
+      const errorDiv = document.getElementById('literacy_error');
+      
+      // Подсчитываем количество предложений (разделители: . ! ?)
+      const sentences = literacyTest.split(/[.!?]+/).filter(s => s.trim().length > 0);
+      
+      if (sentences.length < 5) {
+        e.preventDefault();
+        errorDiv.style.display = 'block';
+        document.getElementById('literacy_test').style.borderColor = '#dc3545';
+        return false;
+      } else {
+        errorDiv.style.display = 'none';
+        document.getElementById('literacy_test').style.borderColor = '';
+      }
+    });
+
+    // Реальное время валидация
+    document.getElementById('literacy_test').addEventListener('input', function() {
+      const literacyTest = this.value.trim();
+      const errorDiv = document.getElementById('literacy_error');
+      const sentences = literacyTest.split(/[.!?]+/).filter(s => s.trim().length > 0);
+      
+      if (sentences.length < 5 && literacyTest.length > 0) {
+        errorDiv.style.display = 'block';
+        this.style.borderColor = '#dc3545';
+      } else {
+        errorDiv.style.display = 'none';
+        this.style.borderColor = '';
+      }
+    });
+  </script>
 {% endblock %}
 
 

@@ -44,18 +44,18 @@
     <div class="content-section">
       <h2>Обращение через интернет</h2>
       <div class="form-section">
-        <form>
+        <form method="post" action="/hotline">
           <div class="form-group">
             <label class="form-label" for="name">ФИО</label>
-            <input type="text" id="name" class="form-input" required>
+            <input type="text" id="name" name="name" class="form-input" required>
           </div>
           <div class="form-group">
             <label class="form-label" for="organization">Организация</label>
-            <input type="text" id="organization" class="form-input">
+            <input type="text" id="organization" name="organization" class="form-input">
           </div>
           <div class="form-group">
             <label class="form-label" for="subject">Тема обращения</label>
-            <select id="subject" class="form-select" required>
+            <select id="subject" name="subject" class="form-select" required>
               <option value="">Выберите тему</option>
               <option value="corruption">Коррупция</option>
               <option value="violation">Нарушение прав</option>
@@ -65,7 +65,7 @@
           </div>
           <div class="form-group">
             <label class="form-label" for="message">Текст обращения</label>
-            <textarea id="message" class="form-textarea" placeholder="Опишите суть проблемы..." required></textarea>
+            <textarea id="message" name="message" class="form-textarea" placeholder="Опишите суть проблемы..." required></textarea>
           </div>
           <button type="submit" class="btn">Отправить обращение</button>
         </form>

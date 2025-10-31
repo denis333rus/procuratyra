@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Админ — обращения на горячую линию</title>
+  <style>
+    body { font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; margin: 0; color: #111; }
+    .wrap { max-width: 1200px; margin: 24px auto; padding: 0 16px; display: grid; gap: 16px; }
+    .card { background:#fff; border:1px solid #e3e8f5; border-radius:12px; box-shadow: 0 4px 14px rgba(31,80,179,.08); }
+    .card__header { padding:16px 18px; border-bottom:1px solid #eef2ff; display:flex; align-items:center; justify-content:space-between; }
+    .card__title { margin:0; font-size:18px; color:#0d47a1; }
+    table { width:100%; border-collapse: collapse; }
+    th, td { padding:10px 12px; border-bottom:1px solid #eef2ff; text-align:left; vertical-align:top; }
+    th { background:#f3f7ff; color:#2b3a5a; font-weight:700; }
+    .nav { display:flex; gap:10px; }
+    .btn { display:inline-block; padding:10px 12px; border-radius:8px; font-weight:600; text-decoration:none; }
+    .btn--primary { color:#fff; background:#0d47a1; border:1px solid #0d47a1; }
+    .btn--secondary { color:#667eea; background:transparent; border:1px solid #667eea; }
+    .subject { display:inline-block; padding:4px 8px; border-radius:4px; font-size:12px; font-weight:600; }
+    .subject-corruption { background:#fee; color:#c33; }
+    .subject-violation { background:#eff; color:#339; }
+    .subject-complaint { background:#ffe; color:#993; }
+    .subject-other { background:#f0f0f0; color:#666; }
+    .message { max-width:400px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="card">
+      <div class="card__header">
+        <h2 class="card__title">Обращения на горячую линию для предпринимателей</h2>
+        <div class="nav">
+          <span style="display:inline-flex; align-items:center; gap:6px; margin-right:8px;">🔔 <strong>{{ unread_count or 0 }}</strong></span>
+          <a class="btn btn--secondary" href="/admin/hotline">Обновить</a>
+          <a class="btn btn--primary" href="{{ url_for('admin_home') }}">К разделам админки</a>
+        </div>
+      </div>
+      <div style="overflow:auto;">
+        <table>
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Создано</th>
+              <th>ФИО</th>
+              <th>Организация</th>
+              <th>Тема</th>
+              <th>Сообщение</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% if appeals %}
+            {% for appeal in appeals %}
+            <tr>
+              <td>{{ appeal.id }}</td>
+              <td>{{ appeal.created_at }}</td>
+              <td>{{ appeal.fio }}</td>
+              <td>{{ appeal.organization or '—' }}</td>
+              <td>
+                {% if appeal.subject == 'corruption' %}
+                  <span class="subject subject-corruption">Коррупция</span>
+                {% elif appeal.subject == 'violation' %}
+                  <span class="subject subject-violation">Нарушение прав</span>
+                {% elif appeal.subject == 'complaint' %}
+                  <span class="subject subject-complaint">Жалоба на действия должностных лиц</span>
+                {% else %}
+                  <span class="subject subject-other">Другое</span>
+                {% endif %}
+              </td>
+              <td class="message" title="{{ appeal.message }}">{{ appeal.message }}</td>
+            </tr>
+            {% endfor %}
+            {% else %}
+            <tr>
+              <td colspan="6" style="text-align:center; padding:20px; color:#999;">
+                Пока нет обращений
+              </td>
+            </tr>
+            {% endif %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</body>
+</html>
+

@@ -377,10 +377,6 @@
     <h2 class="brand__title"><a href="/">Генеральная прокуратура<br>Российской Федерации</a></h2>
     <div class="brand__spacer"></div>
     <div class="brand__actions">
-    <div class="notifications-bell" id="notificationsBell">
-        <span class="bell-icon">🔔</span>
-        <span class="notification-count" id="notificationCount">{{ unread_count or 0 }}</span>
-    </div>
       <div class="account-info">
         <div class="account-info__name">Администратор</div>
         <div class="account-info__role">Системный администратор</div>
@@ -391,6 +387,10 @@
   <div class="wrap">
     <div class="page-header">
       <h1>Обычные новости</h1>
+      <div style="margin-left:auto; display:flex; align-items:center; gap:8px;">
+        <span aria-hidden="true">🔔</span>
+        <span style="font-weight:700; color:#2d3748;">{{ unread_count or 0 }}</span>
+      </div>
     </div>
     
     <nav class="admin-nav">
@@ -401,6 +401,8 @@
       <a href="/admin/docs" class="btn">Документооборот</a>
       <a href="/admin/leader" class="btn">Лидер</a>
       <a href="/admin/organs" class="btn">Органы и организации прокуратуры</a>
+      <a href="/admin/complaints" class="btn">Жалобы</a>
+      <a href="/admin/hotline" class="btn">Обращения на горячую линию</a>
       <a href="/admin/contacts" class="btn">Контакты</a>
     </nav>
     
